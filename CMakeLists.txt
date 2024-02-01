@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(raylib_template C CXX)
+project(chippie-8 C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -12,7 +12,7 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 # static libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 # local header/library
-target_include_directories(raylib_template PRIVATE include)
+target_include_directories(chippie-8 PRIVATE include)
 
 # Set the asset path macro to the absolute path on the dev machine
 target_compile_definitions(${PROJECT_NAME} PUBLIC ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
