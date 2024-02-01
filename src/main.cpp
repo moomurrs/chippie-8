@@ -8,7 +8,7 @@ int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
     SetTargetFPS(30);
 
-    Display display{1};
+    Display display{1.0};
 
     while (!WindowShouldClose()) {
         BeginDrawing();
