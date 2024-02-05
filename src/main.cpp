@@ -6,20 +6,23 @@ constexpr auto SCREEN_HEIGHT = 450;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
-    SetTargetFPS(60);
+    SetTargetFPS(10);
 
     Chippie chippie{};
-
+    chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
 
     while (!WindowShouldClose()) {
         BeginDrawing();
 
-        //ClearBackground(DARKGRAY);
+        ClearBackground(DARKGRAY);
+        /*
         chippie.display().clear();
+        //chippie.display().render();
 
         if(IsKeyDown(KEY_UP)){
-            chippie.display().render();
-        }
+            chippie.display().render_all(RED);
+            }*/
+        chippie.fetch_and_execute_opcode();
 
         EndDrawing();
     }
