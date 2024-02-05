@@ -82,8 +82,39 @@ public:
         return delay_timer;
     }
 
+    void reset_delay_timer(){
+        delay_timer = 255;
+    }
+
     const uint8_t& _get_sound_timer(){
         return sound_timer;
+    }
+
+    void reset_sound_timer(){
+        sound_timer = 255;
+    }
+
+    const uint8_t& _get_vregister(int32_t index){
+        if(index < 0 ||  index > 16){
+            std::string err{"ERROR: bad vregister get index "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        return vregisters.at(index);
+    }
+
+    void _set_vregister(int32_t index, int32_t value){
+        if(index < 0 ||  index > 16){
+            std::string err{"ERROR: bad vregister get index "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        if(value < 0 ||  value > 255){
+            std::string err{"ERROR: bad vregister set value "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        vregisters.at(index) = value;
     }
 
 private:

@@ -54,6 +54,17 @@ TEST_CASE("memory ram test"){
     // verify sp cannot be set outside valid range
     REQUIRE_THROWS(chippie._get_memory()._set_stack_pointer(256));
     REQUIRE_THROWS(chippie._get_memory()._set_stack_pointer(-1));
+    // verify setting and getting vreg
+    chippie._get_memory()._set_vregister(0, 100);
+    REQUIRE(chippie._get_memory()._get_vregister(0) == 100);
+    // error out on bad vreg index
+    REQUIRE_THROWS(chippie._get_memory()._get_vregister(-1));
+    REQUIRE_THROWS(chippie._get_memory()._get_vregister(16));
+
+    REQUIRE_THROWS(chippie._get_memory()._set_vregister(-1, 100));
+    REQUIRE_THROWS(chippie._get_memory()._set_vregister(16, 100));
+    REQUIRE_THROWS(chippie._get_memory()._set_vregister(0, 256));
+    REQUIRE_THROWS(chippie._get_memory()._set_vregister(0, -1));
 
 
 }
