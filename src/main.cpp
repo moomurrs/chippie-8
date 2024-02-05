@@ -6,7 +6,7 @@ constexpr auto SCREEN_HEIGHT = 450;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
-    SetTargetFPS(30);
+    SetTargetFPS(60);
 
     Chippie chippie{};
 
@@ -14,9 +14,12 @@ int main() {
     while (!WindowShouldClose()) {
         BeginDrawing();
 
-        ClearBackground(DARKGRAY);
+        //ClearBackground(DARKGRAY);
+        chippie.display().clear();
 
-        chippie.render();
+        if(IsKeyDown(KEY_UP)){
+            chippie.display().render();
+        }
 
         EndDrawing();
     }

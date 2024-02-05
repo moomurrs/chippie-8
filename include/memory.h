@@ -117,6 +117,29 @@ public:
         vregisters.at(index) = value;
     }
 
+    const uint16_t& _get_stack(int32_t index){
+        if(index < 0 ||  index > 16){
+            std::string err{"ERROR: bad stack get index "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        return stack.at(index);
+    }
+
+    void _set_stack(int32_t index, int32_t value){
+        if(index < 0 ||  index > 16){
+            std::string err{"ERROR: bad stack get index "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        if(value < 0 ||  value > 65535){
+            std::string err{"ERROR: bad stack set value "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+        }
+        stack.at(index) = value;
+    }
+
 private:
     /* ram address space is 0x000 - 0xFFF
        0x000 - 0x1FF: not used

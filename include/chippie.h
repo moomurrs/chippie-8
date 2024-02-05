@@ -15,7 +15,7 @@ public:
     void load_rom_to_ram(const char* file_path){
         spdlog::info("Loading into ram from rom.");
         // zero out registers for fresh start
-        memory.erase_memory(false); // false since it'll be overwritten anyway
+        _memory.erase_memory(false); // false since it'll be overwritten anyway
         // load rom in binary
         std::ifstream rom{file_path, std::ios::binary};
         if(!rom.is_open()){
@@ -29,21 +29,21 @@ public:
         // get rom size
         const size_t rom_size = std::filesystem::file_size(file_path);
         // copy to into chippie ram
-        rom.read((char*)memory.get_ram_rom_start_location(), rom_size);
+        rom.read((char*)_memory.get_ram_rom_start_location(), rom_size);
         // close rom file
         rom.close();
     }
 
-    void render(){
-        display.render();
+    Display& display(){
+        return _display;
     }
 
     // for testing
-    Memory& _get_memory(){
-        return memory;
+    Memory& memory(){
+        return _memory;
     }
 
 private:
-    Display display{1.0}; // graphics helpers
-    Memory memory{};      // internal chip8 memory
+    Display _display{1.0}; // graphics helpers
+    Memory _memory{};      // internal chip8 memory
 };
