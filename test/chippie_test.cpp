@@ -47,8 +47,13 @@ TEST_CASE("memory ram test"){
     chippie._get_memory()._set_stack_pointer(15);
     REQUIRE(chippie._get_memory()._get_stack_pointer() == 15);
 
-}
+    // verify pc cannot be set outside valid range
+    REQUIRE_THROWS(chippie._get_memory()._set_program_counter(70000));
+    REQUIRE_THROWS(chippie._get_memory()._set_program_counter(-1));
 
-TEST_CASE("???"){
+    // verify sp cannot be set outside valid range
+    REQUIRE_THROWS(chippie._get_memory()._set_stack_pointer(256));
+    REQUIRE_THROWS(chippie._get_memory()._set_stack_pointer(-1));
+
 
 }

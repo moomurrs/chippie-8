@@ -49,7 +49,13 @@ public:
         return program_counter;
     }
 
-    void _set_program_counter(uint16_t pc){
+    void _set_program_counter(int32_t pc){
+        if(pc < 0 || pc > 65535){
+            std::string err{"ERROR: new pc outside range. "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+            return;
+        }
         spdlog::info("old pc: %u, new pc: %u", program_counter, pc);
         program_counter = pc;
     }
@@ -62,7 +68,13 @@ public:
         return stack_pointer;
     }
 
-    void _set_stack_pointer(uint8_t sp){
+    void _set_stack_pointer(int16_t sp){
+        if(sp < 0 || sp > 255){
+            std::string err{"ERROR: new sp outside range. "};
+            spdlog::critical(err);
+            throw std::runtime_error{err};
+            return;
+        }
         stack_pointer = sp;
     }
 
