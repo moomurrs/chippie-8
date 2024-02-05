@@ -26,6 +26,27 @@ TEST_CASE("memory ram test"){
     // check if the last byte in ram matches last rom byte
     byte = chippie._get_memory()._get_rom_offset(259);
     REQUIRE(*byte == 0x70);
+
+    // manually erase all memory
+    chippie._get_memory().erase_memory(true);
+    // verify ram is zeroed by checking 1st and ram bytes are 0
+    REQUIRE(*(chippie._get_memory().get_ram_rom_start_location()) == 0);
+    REQUIRE(*(chippie._get_memory().get_ram_rom_start_location() + 3583) == 0);
+    // verify pc and sp are zeroed
+    REQUIRE(chippie._get_memory()._get_program_counter() == 0);
+    REQUIRE(chippie._get_memory()._get_stack_pointer() == 0);
+    // verify timers are reset
+    REQUIRE(chippie._get_memory()._get_delay_timer() == 255);
+    REQUIRE(chippie._get_memory()._get_sound_timer() == 255);
+
+    // verify pc sets properly
+    chippie._get_memory()._set_program_counter(5);
+    REQUIRE(chippie._get_memory()._get_program_counter() == 5);
+
+    // verify sp sets properly
+    chippie._get_memory()._set_stack_pointer(15);
+    REQUIRE(chippie._get_memory()._get_stack_pointer() == 15);
+
 }
 
 TEST_CASE("???"){

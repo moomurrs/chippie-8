@@ -44,6 +44,36 @@ public:
         ram.at(512) = 0xFF;
         ram.at(513) = 0xAB;
     }
+
+    const uint16_t& _get_program_counter(){
+        return program_counter;
+    }
+
+    void _set_program_counter(uint16_t pc){
+        spdlog::info("old pc: %u, new pc: %u", program_counter, pc);
+        program_counter = pc;
+    }
+
+    const uint16_t& _get_index_register(){
+        return index_register;
+    }
+
+    const uint8_t& _get_stack_pointer(){
+        return stack_pointer;
+    }
+
+    void _set_stack_pointer(uint8_t sp){
+        stack_pointer = sp;
+    }
+
+    const uint8_t& _get_delay_timer(){
+        return delay_timer;
+    }
+
+    const uint8_t& _get_sound_timer(){
+        return sound_timer;
+    }
+
 private:
     /* ram address space is 0x000 - 0xFFF
        0x000 - 0x1FF: not used
