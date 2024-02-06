@@ -8,7 +8,7 @@
 class Chippie {
 public:
 
-    void fetch_and_execute_opcode(){
+    void fetch_and_execute_opcode(uint16_t dummy){
         const uint8_t first = *(_memory._get_rom_offset(_memory._get_program_counter()));
         const uint8_t second =  *(_memory._get_rom_offset(_memory._get_program_counter() + 1));
 
@@ -28,28 +28,82 @@ public:
         // 12-bit immediate value
         constexpr uint16_t nnn_mask = 0x0FFF; // 2nd, 3rd, & 4th nibble
 
-        uint8_t instruction = (opcode & op_mask) >> 12;
+        uint8_t instruction = (dummy & op_mask) >> 12;
 
-        uint16_t index = 0;
-        uint16_t val = 0;
 
         switch(instruction){
         case 0xD:
+        {
             // render display
 
+            //uint16_t x_nibble = (opcode & x_mask) >> 8;
+            //uint16_t y_nibble = (opcode & y_mask) >> 4;
+            //uint16_t n_rows = (opcode & n_mask);
+
+            uint16_t n_rows = dummy & n_mask;
+
+            //uint16_t x_pos = _memory._get_vregister(x_nibble) % 64;
+            //uint16_t y_pos = _memory._get_vregister(y_nibble) % 32;
+            uint16_t x_pos = 0;
+            uint16_t y_pos = 0;
+
+            // set vf to 0
+            _memory._set_vregister(15, 0);
+
+            std::array<uint8_t, 6> sprites{
+                0xba,
+                0x7c,
+                0xd6,
+                0xfe,
+                0x54,
+                0xaa
+            };
+            uint8_t bit_mask = 0b10000000;
+            // height of sprite
+            for(size_t i = 0; i < n_rows; i++){
+                //uint8_t sprite = _memory._get_index_register();
+
+                // width of sprite
+                for(size_t j = 0; j < 8; j++){
+                    spdlog::info("bit: {:d}", sprites.at(i) & bit_mask);
+
+                    if(sprites.at(i) & bit_mask){
+                        _display.pixels()[i][j] = true;
+                    }else{
+                        _display.pixels()[i][j] = false;
+                    }
+
+                    bit_mask >>= 1;
+                    x_pos++;
+                }
+                // reset bitmask
+                bit_mask = 0b10000000;
+                y_pos++;
+            }
+
+            _display.render();
+
             break;
+        }
+
         case 0xA:
+        {
             // set index register i
-            val = opcode & nnn_mask;
+            uint16_t  val = opcode & nnn_mask;
             _memory._set_index_register(val);
             break;
+        }
 
         case 0x7:
+        {
             // add immediate value nn to register vx
-            index = opcode & x_mask;
-            val = _memory._get_vregister(index);
-            _memory._set_vregister(opcode & x_mask, val + (opcode & nn_mask));
+            uint16_t index = opcode & x_mask;
+            uint16_t current_val = _memory._get_vregister(index);
+            _memory._set_vregister(opcode & x_mask,
+                                   current_val + (opcode & nn_mask));
             break;
+        }
+
         case 0x6:
             // set register to immediate value nn
             _memory._set_vregister(opcode & x_mask, opcode & nn_mask);
@@ -105,6 +159,6 @@ public:
     }
 
 private:
-    Display _display{1.0, DARKGRAY, RED}; // graphics helpers
+    Display _display{1.0, BLACK, RED}; // graphics helpers
     Memory _memory{};      // internal chip8 memory
 };

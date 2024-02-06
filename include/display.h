@@ -28,10 +28,17 @@ public:
     void render(){
         for(std::size_t i = 0; i < 32; i++){
             for(std::size_t j = 0; j < 64; j++){
-                DrawRectangle(width_offset + pixel_width * j + (padding * j),
-                              height_offset + pixel_height * i + (padding * i),
-                              pixel_width, pixel_height,
-                              pixel_color);
+                if(pixel_buffer[i][j]){
+                    DrawRectangle(width_offset + pixel_width * j + (padding * j),
+                                  height_offset + pixel_height * i + (padding * i),
+                                  pixel_width, pixel_height,
+                                  pixel_color);
+                }else{
+                    DrawRectangle(width_offset + pixel_width * j + (padding * j),
+                                  height_offset + pixel_height * i + (padding * i),
+                                  pixel_width, pixel_height,
+                                  background_color);
+                }
             }
         }
     }
@@ -46,6 +53,10 @@ public:
                       (64 * pixel_width) + (padding * 64 - 1),
                       (32 * pixel_height) + (padding * 32 - 1),
                       background_color);*/
+    }
+
+    std::array<std::array<bool, 64>, 32>& pixels(){
+        return pixel_buffer;
     }
 
 
