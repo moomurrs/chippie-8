@@ -9,21 +9,21 @@ class Memory {
 public:
 
     /* get byte value from rom with offset */
-    uint8_t* _get_rom_offset(uint32_t offset){
-        return get_ram_rom_start_location() + offset;
+    const uint8_t*  _get_rom_offset(uint32_t offset){
+        return &ram[512 + offset];
     }
 
     /* return the start address of where rom begins
      * which is 0x200 (or item index 512) */
-    uint8_t* get_ram_rom_start_location(){
-        return &ram.at(512);
+    const uint8_t* get_ram_rom_start_location(){
+        return &ram[512];
     }
 
     /* zero out all registers
        ram erased only if flagged  */
     void erase_memory(bool erase_ram){
         spdlog::info("erasing memory");
-        program_counter = 0x200;
+        program_counter = 0;
         index_register = 0;
         stack_pointer = 0;
         delay_timer = 255;
@@ -210,7 +210,7 @@ private:
        grab a byte from PC, then PC+1 to make a full opcode.
        Make sure to increment the PC by 2. */
 
-    uint16_t program_counter = 0x200; // points to the next instruction to be executed
+    uint16_t program_counter = 0; // points to the next instruction to be executed
     uint16_t index_register = 0;  // store memory address for in-use operations
     std::array<uint16_t, 16> stack{}; // stack is 16 layers deep, keeping track of new and old PC
     uint8_t stack_pointer = 0;

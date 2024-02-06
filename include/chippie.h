@@ -4,21 +4,26 @@
 #include <spdlog/spdlog.h>
 #include "memory.h"
 #include "display.h"
-#include <iostream>
 
 class Chippie {
 public:
 
     void fetch_and_execute_opcode(){
-        const uint8_t first = *(_memory._get_rom_offset(_memory._get_program_counter()));
-        const uint8_t second =  *(_memory._get_rom_offset(_memory._get_program_counter() + 1));
+
+        const uint16_t pc = _memory._get_program_counter();
+
+        const uint8_t first = *(_memory._get_rom_offset(pc));
+        const uint8_t second = *(_memory._get_rom_offset(pc + 1));
+
+        spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
+
 
         uint16_t opcode = first;
         // put first byte into higher, second byte lower
         opcode = (opcode << 8) | second;
 
-        spdlog::info("both: {:x}", opcode);
-        spdlog::info("0x200: {:x}", *_memory._get_rom_offset(0));
+        //spdlog::info("both: {:x}", opcode);
+        //spdlog::info("0x200: {:x}", *_memory._get_rom_offset(0));
 
 
         constexpr uint16_t op_mask = 0xF000;
@@ -32,6 +37,7 @@ public:
         constexpr uint16_t nnn_mask = 0x0FFF; // 2nd, 3rd, & 4th nibble
 
         uint8_t instruction = (opcode & op_mask) >> 12;
+        //spdlog::info("both: {:x}", instruction);
 
 
         switch(instruction){
@@ -53,15 +59,6 @@ public:
             // set vf to 0
             _memory._set_vregister(15, 0);
 
-            /*
-            std::array<uint8_t, 6> sprites{
-                0xba,
-                0x7c,
-                0xd6,
-                0xfe,
-                0x54,
-                0xaa
-                };*/
 
             uint8_t bit_mask = 0b10000000;
             // height of sprite
@@ -118,23 +115,30 @@ public:
 
         case 0x6:
             // set register to immediate value nn
-            _memory._set_vregister(opcode & x_mask, opcode & nn_mask);
+            spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
+            spdlog::info("nn: 0x{:x}", opcode & nn_mask);
+            _memory._set_vregister((opcode & x_mask) >> 8, opcode & nn_mask);
             break;
         case 0x1:
             // jump to immediate value nnn
 
             break;
-        case 0x00:
+        case 0x0:
             // candidate for clear display, continue checking
             if((opcode & nn_mask) == 0xE0){ // checking lower byte
                 // clear screen
                 _display.clear();
-                break;
+
+            }else{
+                spdlog::critical("0x0 but not e0: 0x{:x}", opcode);
+                spdlog::critical("rest: 0x{:x}", opcode & nn_mask);
+
             }
+            break;
         default:
             spdlog::critical("bad instruction: 0x{:x}", opcode);
 
-        }
+            }
 
         // increment pc
         _memory._set_program_counter(_memory._get_program_counter() + 2);
