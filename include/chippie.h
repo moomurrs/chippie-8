@@ -4,11 +4,12 @@
 #include <spdlog/spdlog.h>
 #include "memory.h"
 #include "display.h"
+#include <iostream>
 
 class Chippie {
 public:
 
-    void fetch_and_execute_opcode(uint16_t dummy){
+    void fetch_and_execute_opcode(){
         const uint8_t first = *(_memory._get_rom_offset(_memory._get_program_counter()));
         const uint8_t second =  *(_memory._get_rom_offset(_memory._get_program_counter() + 1));
 
@@ -16,7 +17,9 @@ public:
         // put first byte into higher, second byte lower
         opcode = (opcode << 8) | second;
 
-        //spdlog::info("both: {:x}", opcode);
+        spdlog::info("both: {:x}", opcode);
+        spdlog::info("0x200: {:x}", *_memory._get_rom_offset(0));
+
 
         constexpr uint16_t op_mask = 0xF000;
         constexpr uint16_t x_mask = 0x0F00; // 2nd nibble
@@ -28,7 +31,7 @@ public:
         // 12-bit immediate value
         constexpr uint16_t nnn_mask = 0x0FFF; // 2nd, 3rd, & 4th nibble
 
-        uint8_t instruction = (dummy & op_mask) >> 12;
+        uint8_t instruction = (opcode & op_mask) >> 12;
 
 
         switch(instruction){
@@ -36,20 +39,21 @@ public:
         {
             // render display
 
-            //uint16_t x_nibble = (opcode & x_mask) >> 8;
-            //uint16_t y_nibble = (opcode & y_mask) >> 4;
-            //uint16_t n_rows = (opcode & n_mask);
+            uint16_t x_nibble = (opcode & x_mask) >> 8;
+            uint16_t y_nibble = (opcode & y_mask) >> 4;
+            uint16_t n_rows = (opcode & n_mask);
 
-            uint16_t n_rows = dummy & n_mask;
+            //uint16_t n_rows = dummy & n_mask;
 
-            //uint16_t x_pos = _memory._get_vregister(x_nibble) % 64;
-            //uint16_t y_pos = _memory._get_vregister(y_nibble) % 32;
-            uint16_t x_pos = 0;
-            uint16_t y_pos = 0;
+            uint16_t x_pos = _memory._get_vregister(x_nibble) % 64;
+            uint16_t y_pos = _memory._get_vregister(y_nibble) % 32;
+            //uint16_t x_pos = 0;
+            //uint16_t y_pos = 0;
 
             // set vf to 0
             _memory._set_vregister(15, 0);
 
+            /*
             std::array<uint8_t, 6> sprites{
                 0xba,
                 0x7c,
@@ -57,20 +61,24 @@ public:
                 0xfe,
                 0x54,
                 0xaa
-            };
+                };*/
+
             uint8_t bit_mask = 0b10000000;
             // height of sprite
             for(size_t i = 0; i < n_rows; i++){
-                //uint8_t sprite = _memory._get_index_register();
+                uint8_t sprite = _memory._get_index_register();
 
                 // width of sprite
                 for(size_t j = 0; j < 8; j++){
-                    spdlog::info("bit: {:d}", sprites.at(i) & bit_mask);
+                    spdlog::info("bit: {:d}", sprite & bit_mask);
 
-                    if(sprites.at(i) & bit_mask){
-                        _display.pixels()[i][j] = true;
-                    }else{
+                    if((sprite & bit_mask) && _display.pixels()[i][j]){
                         _display.pixels()[i][j] = false;
+                        _memory._set_vregister(15, 1);
+                        spdlog::info("x");
+                    }else{
+                        _display.pixels()[i][j] = true;
+                        spdlog::info(".");
                     }
 
                     bit_mask >>= 1;
@@ -79,6 +87,10 @@ public:
                 // reset bitmask
                 bit_mask = 0b10000000;
                 y_pos++;
+
+                spdlog::info("!");
+
+
             }
 
             _display.render();
@@ -119,6 +131,8 @@ public:
                 _display.clear();
                 break;
             }
+        default:
+            spdlog::critical("bad instruction: 0x{:x}", opcode);
 
         }
 

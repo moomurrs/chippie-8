@@ -9,7 +9,7 @@ int main() {
     SetTargetFPS(1);
 
     Chippie chippie{};
-    //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
+    chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -23,7 +23,7 @@ int main() {
         if(IsKeyDown(KEY_UP)){
             chippie.display().render_all(RED);
             }*/
-        chippie.fetch_and_execute_opcode(0xDAA6);
+        chippie.fetch_and_execute_opcode();
 
         EndDrawing();
     }
