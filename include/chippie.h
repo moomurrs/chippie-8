@@ -14,7 +14,7 @@ public:
 
         const uint8_t first = *(_memory._get_rom_offset(pc));
         const uint8_t second = *(_memory._get_rom_offset(pc + 1));
-
+        spdlog::info("-----------------------------");
         spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
         uint16_t opcode = first;
@@ -56,7 +56,6 @@ public:
             // height of sprite
             for(size_t i = 0; i < n_rows; i++){
 
-
                 uint16_t index = _memory._get_index_register() + i;
                 //spdlog::info("index: {:d}", index);
                 uint8_t sprite = *_memory._get_ram_offset(index);
@@ -86,7 +85,6 @@ public:
                 }
                 // reset bitmask
                 bit_mask = 0b10000000;
-
             }
 
             _display.render();
@@ -107,13 +105,16 @@ public:
         case 0x7:
         {
             // add immediate value nn to register vx
+            uint8_t vx = (opcode & x_mask) >> 8;
+            uint8_t nn = opcode & nn_mask;
             spdlog::info("7XNN");
-            spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
-            spdlog::info("nn: 0x{:x}", opcode & nn_mask);
-            uint16_t index = (opcode & x_mask) >> 8;
-            uint16_t current_val = _memory._get_vregister(index);
-            _memory._set_vregister(opcode & x_mask,
-                                   current_val + (opcode & nn_mask));
+            spdlog::info("x: 0x{:x}", vx);
+            spdlog::info("nn: 0x{:x}", nn);
+
+            uint16_t current_val = _memory._get_vregister(vx);
+            spdlog::info("current reg val: 0x{:x}", current_val);
+            _memory._set_vregister(vx,
+                                   (current_val + nn) % 256);
             _memory.move_pc();
             break;
         }
@@ -121,10 +122,12 @@ public:
         case 0x6:
             {
                 // set register to immediate value nn
+                uint8_t x = (opcode & x_mask) >> 8;
+                uint8_t nn = opcode & nn_mask;
                 spdlog::info("6XNN");
-                spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
-                spdlog::info("nn: 0x{:x}", opcode & nn_mask);
-                _memory._set_vregister((opcode & x_mask) >> 8, opcode & nn_mask);
+                spdlog::info("x: 0x{:x}", x);
+                spdlog::info("nn: 0x{:x}", nn);
+                _memory._set_vregister(x, nn);
                 _memory.move_pc();
                 break;
             }
@@ -155,6 +158,63 @@ public:
                 _memory.move_pc();
                 break;
             }
+
+        case 0x3:
+        {
+
+            // skip instruction(2 bytes) if vx == nn
+            spdlog::info("3XNN");
+            uint8_t x = (opcode & x_mask) >> 8;
+            uint8_t nn = opcode & nn_mask;
+
+            if(x == nn){
+                _memory.move_pc();
+            }
+
+            spdlog::info("x: 0x{:x}", x);
+            spdlog::info("nn: 0x{:x}", nn);
+            _memory.move_pc();
+
+            break;
+        }
+
+        case 0x4:
+        {
+
+            // skip instruction(2 bytes) if vx != nn
+            spdlog::info("4XNN");
+            uint8_t x = (opcode & x_mask) >> 8;
+            uint8_t nn = opcode & nn_mask;
+
+            if(x != nn){
+                _memory.move_pc();
+            }
+
+            spdlog::info("x: 0x{:x}", x);
+            spdlog::info("nn: 0x{:x}", nn);
+            _memory.move_pc();
+
+            break;
+        }
+
+        case 0x5:
+        {
+
+            // skip if vx == vy
+            spdlog::info("5XN0");
+            uint8_t vx = (opcode & x_mask) >> 8;
+            uint8_t vy = opcode & y_mask >> 4;
+
+            if(vx == vy){
+                _memory.move_pc();
+            }
+
+            spdlog::info("vx: 0x{:x}", vx);
+            spdlog::info("vy: 0x{:x}", vy);
+            _memory.move_pc();
+
+            break;
+        }
 
         default:
             spdlog::critical("bad instruction or data: 0x{:x}", opcode);

@@ -10,6 +10,7 @@ int main() {
 
     Chippie chippie{};
     chippie.load_rom_to_ram("../test/2-ibm-logo.ch8");
+    //chippie.load_rom_to_ram("../test/3-corax+.ch8");
     //chippie.load_rom_to_ram("../test/alien.ch8");
 
 
