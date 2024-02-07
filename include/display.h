@@ -11,7 +11,10 @@ public:
         magnifier(mag),
         background_color(background),
         pixel_color(pixel)
-        {}
+        {
+            // draw the blank pixels on startup
+            clear();
+        }
 
     // turn on all pixels
     void render_all(Color color){

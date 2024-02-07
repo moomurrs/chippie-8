@@ -9,7 +9,7 @@ class Memory {
 public:
 
     /* get byte value from rom with offset */
-    const uint8_t*  _get_rom_offset(uint32_t offset){
+    const uint8_t* _get_rom_offset(uint32_t offset){
         return &ram[512 + offset];
     }
 
@@ -17,6 +17,10 @@ public:
      * which is 0x200 (or item index 512) */
     const uint8_t* get_ram_rom_start_location(){
         return &ram[512];
+    }
+
+    const uint8_t* _get_ram_offset(uint32_t offset){
+        return &ram[offset];
     }
 
     /* zero out all registers
@@ -45,7 +49,6 @@ public:
     }
 
 
-
     const uint16_t& _get_program_counter(){
         return program_counter;
     }
@@ -72,7 +75,7 @@ public:
             throw std::runtime_error{err};
             return;
         }
-        spdlog::info("old sp: {:d}, new sp: {:d}", stack_pointer, ireg);
+        spdlog::info("old i: {:d}, new i: {:d}", index_register, ireg);
         index_register = ireg;
     }
 
@@ -105,6 +108,10 @@ public:
 
     void reset_sound_timer(){
         sound_timer = 255;
+    }
+
+    void move_pc(){
+        program_counter += 2;
     }
 
     const uint8_t& _get_vregister(int32_t index){

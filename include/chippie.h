@@ -17,14 +17,9 @@ public:
 
         spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
-
         uint16_t opcode = first;
         // put first byte into higher, second byte lower
         opcode = (opcode << 8) | second;
-
-        //spdlog::info("both: {:x}", opcode);
-        //spdlog::info("0x200: {:x}", *_memory._get_rom_offset(0));
-
 
         constexpr uint16_t op_mask = 0xF000;
         constexpr uint16_t x_mask = 0x0F00; // 2nd nibble
@@ -37,111 +32,133 @@ public:
         constexpr uint16_t nnn_mask = 0x0FFF; // 2nd, 3rd, & 4th nibble
 
         uint8_t instruction = (opcode & op_mask) >> 12;
-        //spdlog::info("both: {:x}", instruction);
-
 
         switch(instruction){
         case 0xD:
         {
             // render display
-
+            spdlog::info("DXYN");
             uint16_t x_nibble = (opcode & x_mask) >> 8;
             uint16_t y_nibble = (opcode & y_mask) >> 4;
             uint16_t n_rows = (opcode & n_mask);
 
-            //uint16_t n_rows = dummy & n_mask;
+            uint16_t x_pos_corner = _memory._get_vregister(x_nibble) % 64;
+            uint16_t y_pos_corner = _memory._get_vregister(y_nibble) % 32;
 
-            uint16_t x_pos = _memory._get_vregister(x_nibble) % 64;
-            uint16_t y_pos = _memory._get_vregister(y_nibble) % 32;
-            //uint16_t x_pos = 0;
-            //uint16_t y_pos = 0;
+            spdlog::info("x: {:d}, y: {:d}, n: {:d}", x_pos_corner, y_pos_corner, n_rows);
 
             // set vf to 0
             _memory._set_vregister(15, 0);
 
+            //spdlog::info("n address: {:d}", _memory._get_index_register());
 
             uint8_t bit_mask = 0b10000000;
             // height of sprite
             for(size_t i = 0; i < n_rows; i++){
-                uint8_t sprite = _memory._get_index_register();
+
+
+                uint16_t index = _memory._get_index_register() + i;
+                //spdlog::info("index: {:d}", index);
+                uint8_t sprite = *_memory._get_ram_offset(index);
 
                 // width of sprite
                 for(size_t j = 0; j < 8; j++){
-                    spdlog::info("bit: {:d}", sprite & bit_mask);
 
-                    if((sprite & bit_mask) && _display.pixels()[i][j]){
-                        _display.pixels()[i][j] = false;
-                        _memory._set_vregister(15, 1);
-                        spdlog::info("x");
-                    }else{
-                        _display.pixels()[i][j] = true;
-                        spdlog::info(".");
+                    bool pixel_request = sprite & bit_mask;
+                    bool pixel_status = _display.pixels()[i][j];
+
+                    //spdlog::info("requested: {:d}, status: {:d}", pixel_request, pixel_status);
+
+                    if((sprite & bit_mask)){
+                        // pixel ON requested
+                        if(_display.pixels()[y_pos_corner + i][x_pos_corner + j]){
+                            // display pixel on, turn off
+                            _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
+                            _memory._set_vregister(15, 1);
+                        }else{
+                            // display pixel OFF, turn ON
+                            _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
+                        }
                     }
 
                     bit_mask >>= 1;
-                    x_pos++;
+
                 }
                 // reset bitmask
                 bit_mask = 0b10000000;
-                y_pos++;
-
-                spdlog::info("!");
-
 
             }
 
             _display.render();
-
+            _memory.move_pc();
             break;
         }
 
         case 0xA:
         {
             // set index register i
+            spdlog::info("ANNN");
             uint16_t  val = opcode & nnn_mask;
             _memory._set_index_register(val);
+            _memory.move_pc();
             break;
         }
 
         case 0x7:
         {
             // add immediate value nn to register vx
-            uint16_t index = opcode & x_mask;
+            spdlog::info("7XNN");
+            spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
+            spdlog::info("nn: 0x{:x}", opcode & nn_mask);
+            uint16_t index = (opcode & x_mask) >> 8;
             uint16_t current_val = _memory._get_vregister(index);
             _memory._set_vregister(opcode & x_mask,
                                    current_val + (opcode & nn_mask));
+            _memory.move_pc();
             break;
         }
 
         case 0x6:
-            // set register to immediate value nn
-            spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
-            spdlog::info("nn: 0x{:x}", opcode & nn_mask);
-            _memory._set_vregister((opcode & x_mask) >> 8, opcode & nn_mask);
-            break;
+            {
+                // set register to immediate value nn
+                spdlog::info("6XNN");
+                spdlog::info("x: 0x{:x}", (opcode & x_mask) >> 8);
+                spdlog::info("nn: 0x{:x}", opcode & nn_mask);
+                _memory._set_vregister((opcode & x_mask) >> 8, opcode & nn_mask);
+                _memory.move_pc();
+                break;
+            }
+
         case 0x1:
-            // jump to immediate value nnn
+            {
+                // jump to immediate value nnn
+                uint16_t val = opcode & nnn_mask;
+                _memory._set_program_counter(val);
+                spdlog::info("1NNN: to location {:x}", val);
+                // dont increment pc
+                break;
+            }
 
-            break;
         case 0x0:
-            // candidate for clear display, continue checking
-            if((opcode & nn_mask) == 0xE0){ // checking lower byte
-                // clear screen
-                _display.clear();
+            {
+                // candidate for clear display, continue checking
+                if((opcode & nn_mask) == 0xE0){ // checking lower byte
+                    // clear screen
+                    spdlog::info("00E0: clear screen");
+                    _display.clear();
 
-            }else{
-                spdlog::critical("0x0 but not e0: 0x{:x}", opcode);
-                spdlog::critical("rest: 0x{:x}", opcode & nn_mask);
+                }else{
+                    spdlog::critical("0x0 but not e0: 0x{:x}", opcode);
+                    spdlog::critical("rest: 0x{:x}", opcode & nn_mask);
 
+                }
+                _memory.move_pc();
+                break;
             }
-            break;
+
         default:
-            spdlog::critical("bad instruction: 0x{:x}", opcode);
-
-            }
-
-        // increment pc
-        _memory._set_program_counter(_memory._get_program_counter() + 2);
+            spdlog::critical("bad instruction or data: 0x{:x}", opcode);
+        }
 
     }
 
