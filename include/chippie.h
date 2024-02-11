@@ -7,6 +7,9 @@
 
 class Chippie {
 public:
+    Chippie(){
+        spdlog::info("chip8: initializing...");
+    }
 
     void fetch_and_execute_opcode(){
 
@@ -253,7 +256,8 @@ public:
         return _memory;
     }
 
+
 private:
-    Display _display{1.0, BLACK, RED}; // graphics helpers
+    Display _display{1.0, DARKGRAY, RED}; // graphics helpers
     Memory _memory{};      // internal chip8 memory
 };

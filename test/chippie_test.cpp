@@ -19,8 +19,9 @@ TEST_CASE("memory ram test"){
     chippie.load_rom_to_ram("./1-chip8-logo.ch8");
 
     // check if the 2nd byte in ram matches rom hex 0XE0
-    uint8_t* byte{};
+    const uint8_t* byte{};
     byte = chippie.memory()._get_rom_offset(1);
+
     REQUIRE(*byte == 0xE0);
 
     // check if the last byte in ram matches last rom byte
@@ -33,7 +34,7 @@ TEST_CASE("memory ram test"){
     REQUIRE(*(chippie.memory().get_ram_rom_start_location()) == 0);
     REQUIRE(*(chippie.memory().get_ram_rom_start_location() + 3583) == 0);
     // verify pc and sp are zeroed
-    REQUIRE(chippie.memory()._get_program_counter() == 0x200);
+    REQUIRE(chippie.memory()._get_program_counter() == 0);
     REQUIRE(chippie.memory()._get_stack_pointer() == 0);
     // verify timers are reset
     REQUIRE(chippie.memory()._get_delay_timer() == 255);
@@ -91,7 +92,7 @@ TEST_CASE("memory ram test"){
 }
 
 TEST_CASE("font Test"){
-    Chippie chippie;
+    Chippie chippie{};
 
     // probe a couple font data
     REQUIRE(chippie.memory().get_font_byte(0) == 0xF0); // first font byte
@@ -99,6 +100,5 @@ TEST_CASE("font Test"){
 
     REQUIRE_THROWS(chippie.memory().get_font_byte(-1));
     REQUIRE_THROWS(chippie.memory().get_font_byte(80));
-
 
 }

@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <algorithm>
+#include <spdlog/spdlog.h>
 
 class Display {
 public:
@@ -13,7 +14,7 @@ public:
         pixel_color(pixel)
         {
             // draw the blank pixels on startup
-            clear();
+            spdlog::info("display: initializing...");
         }
 
     // turn on all pixels
