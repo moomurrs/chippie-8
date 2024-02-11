@@ -19,7 +19,7 @@ public:
         return &ram_memory[512];
     }
 
-    const uint8_t* _get_ram_offset(uint32_t offset){
+    const uint8_t* ram_offset(uint32_t offset){
         return &ram_memory[offset];
     }
 
@@ -27,7 +27,7 @@ public:
        ram erased only if flagged  */
     void erase_memory(bool erase_ram){
         spdlog::info("erasing memory");
-        program_counter = 0;
+        program_counter = 0x200;
         index_register = 0;
         stack_pointer = 0;
         delay_timer_count = 255;
@@ -60,7 +60,7 @@ public:
             throw std::runtime_error{err};
             return;
         }
-        spdlog::info("old pc: {:d}, new pc: {:d}", program_counter, new_pc);
+        spdlog::info("SETTING: old pc: {:d}, new pc: {:d}", program_counter, new_pc);
         program_counter = new_pc;
     }
 
@@ -75,7 +75,7 @@ public:
             throw std::runtime_error{err};
             return;
         }
-        spdlog::info("old i: {:d}, new i: {:d}", index_register, ireg);
+        spdlog::info("SETTING: old i: {:d}, new i: {:d}", index_register, ireg);
         index_register = ireg;
     }
 
@@ -111,6 +111,7 @@ public:
     }
 
     void move_pc(){
+        spdlog::info("increment: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
         program_counter += 2;
     }
 
@@ -217,7 +218,7 @@ private:
        grab a byte from PC, then PC+1 to make a full opcode.
        Make sure to increment the PC by 2. */
 
-    uint16_t program_counter = 0; // points to the next instruction to be executed
+    uint16_t program_counter = 0x200; // points to the next instruction to be executed
     uint16_t index_register = 0;  // store memory address for in-use operations
     std::array<uint16_t, 16> stack{}; // stack is 16 layers deep, keeping track of new and old PC
     uint8_t stack_pointer = 0;

@@ -15,8 +15,8 @@ public:
 
         const uint16_t pc = _memory.pc();
 
-        const uint8_t first = *(_memory._get_rom_offset(pc));
-        const uint8_t second = *(_memory._get_rom_offset(pc + 1));
+        const uint8_t first = *(_memory.ram_offset(pc));
+        const uint8_t second = *(_memory.ram_offset(pc + 1));
         spdlog::info("-----------------------------");
         spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
@@ -61,7 +61,7 @@ public:
 
                 uint16_t index = _memory.i_reg() + i;
                 //spdlog::info("index: {:d}", index);
-                uint8_t sprite = *_memory._get_ram_offset(index);
+                uint8_t sprite = *_memory.ram_offset(index);
 
                 // width of sprite
                 for(size_t j = 0; j < 8; j++){

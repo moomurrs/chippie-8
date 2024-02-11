@@ -34,7 +34,7 @@ TEST_CASE("memory ram test"){
     REQUIRE(*(chippie.memory().get_ram_rom_start_location()) == 0);
     REQUIRE(*(chippie.memory().get_ram_rom_start_location() + 3583) == 0);
     // verify pc and sp are zeroed
-    REQUIRE(chippie.memory().pc() == 0);
+    REQUIRE(chippie.memory().pc() == 0x200);
     REQUIRE(chippie.memory().sp() == 0);
     // verify timers are reset
     REQUIRE(chippie.memory().delay_timer() == 255);
@@ -100,5 +100,12 @@ TEST_CASE("font Test"){
 
     REQUIRE_THROWS(chippie.memory().font_byte(-1));
     REQUIRE_THROWS(chippie.memory().font_byte(80));
+
+}
+
+TEST_CASE("Corax test"){
+    Chippie chippie{};
+
+
 
 }

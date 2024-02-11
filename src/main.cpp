@@ -6,11 +6,11 @@ constexpr auto SCREEN_HEIGHT = 450;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
-    SetTargetFPS(60);
+    SetTargetFPS(10);
 
     Chippie chippie{};
-    chippie.load_rom_to_ram("../test/2-ibm-logo.ch8");
-    //chippie.load_rom_to_ram("../test/3-corax+.ch8");
+    //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
+    chippie.load_rom_to_ram("../test/3-corax+.ch8");
     //chippie.load_rom_to_ram("../test/alien.ch8");
 
 
