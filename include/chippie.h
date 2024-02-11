@@ -13,7 +13,7 @@ public:
 
     void fetch_and_execute_opcode(){
 
-        const uint16_t pc = _memory._get_program_counter();
+        const uint16_t pc = _memory.pc();
 
         const uint8_t first = *(_memory._get_rom_offset(pc));
         const uint8_t second = *(_memory._get_rom_offset(pc + 1));
@@ -45,13 +45,13 @@ public:
             uint16_t y_nibble = (opcode & y_mask) >> 4;
             uint16_t n_rows = (opcode & n_mask);
 
-            uint16_t x_pos_corner = _memory._get_vregister(x_nibble) % 64;
-            uint16_t y_pos_corner = _memory._get_vregister(y_nibble) % 32;
+            uint16_t x_pos_corner = _memory.v_reg(x_nibble) % 64;
+            uint16_t y_pos_corner = _memory.v_reg(y_nibble) % 32;
 
             spdlog::info("x: {:d}, y: {:d}, n: {:d}", x_pos_corner, y_pos_corner, n_rows);
 
             // set vf to 0
-            _memory._set_vregister(15, 0);
+            _memory.v_reg(15, 0);
 
             //spdlog::info("n address: {:d}", _memory._get_index_register());
 
@@ -59,7 +59,7 @@ public:
             // height of sprite
             for(size_t i = 0; i < n_rows; i++){
 
-                uint16_t index = _memory._get_index_register() + i;
+                uint16_t index = _memory.i_reg() + i;
                 //spdlog::info("index: {:d}", index);
                 uint8_t sprite = *_memory._get_ram_offset(index);
 
@@ -76,7 +76,7 @@ public:
                         if(_display.pixels()[y_pos_corner + i][x_pos_corner + j]){
                             // display pixel on, turn off
                             _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
-                            _memory._set_vregister(15, 1);
+                            _memory.v_reg(15, 1);
                         }else{
                             // display pixel OFF, turn ON
                             _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
@@ -100,7 +100,7 @@ public:
             // set index register i
             spdlog::info("ANNN");
             uint16_t  val = opcode & nnn_mask;
-            _memory._set_index_register(val);
+            _memory.i_reg(val);
             _memory.move_pc();
             break;
         }
@@ -114,10 +114,9 @@ public:
             spdlog::info("x: 0x{:x}", vx);
             spdlog::info("nn: 0x{:x}", nn);
 
-            uint16_t current_val = _memory._get_vregister(vx);
+            uint16_t current_val = _memory.v_reg(vx);
             spdlog::info("current reg val: 0x{:x}", current_val);
-            _memory._set_vregister(vx,
-                                   (current_val + nn) % 256);
+            _memory.v_reg(vx, (current_val + nn) % 256);
             _memory.move_pc();
             break;
         }
@@ -130,7 +129,7 @@ public:
                 spdlog::info("6XNN");
                 spdlog::info("x: 0x{:x}", x);
                 spdlog::info("nn: 0x{:x}", nn);
-                _memory._set_vregister(x, nn);
+                _memory.v_reg(x, nn);
                 _memory.move_pc();
                 break;
             }
@@ -139,7 +138,7 @@ public:
             {
                 // jump to immediate value nnn
                 uint16_t val = opcode & nnn_mask;
-                _memory._set_program_counter(val);
+                _memory.pc(val);
                 spdlog::info("1NNN: to location {:x}", val);
                 // dont increment pc
                 break;
@@ -258,6 +257,6 @@ public:
 
 
 private:
-    Display _display{1.0, DARKGRAY, RED}; // graphics helpers
+    Display _display{1.0, BLACK, RED}; // graphics helpers
     Memory _memory{};      // internal chip8 memory
 };

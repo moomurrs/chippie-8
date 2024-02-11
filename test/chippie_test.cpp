@@ -34,59 +34,59 @@ TEST_CASE("memory ram test"){
     REQUIRE(*(chippie.memory().get_ram_rom_start_location()) == 0);
     REQUIRE(*(chippie.memory().get_ram_rom_start_location() + 3583) == 0);
     // verify pc and sp are zeroed
-    REQUIRE(chippie.memory()._get_program_counter() == 0);
-    REQUIRE(chippie.memory()._get_stack_pointer() == 0);
+    REQUIRE(chippie.memory().pc() == 0);
+    REQUIRE(chippie.memory().sp() == 0);
     // verify timers are reset
-    REQUIRE(chippie.memory()._get_delay_timer() == 255);
-    REQUIRE(chippie.memory()._get_sound_timer() == 255);
+    REQUIRE(chippie.memory().delay_timer() == 255);
+    REQUIRE(chippie.memory().sound_timer() == 255);
 
     // verify pc sets properly
-    chippie.memory()._set_program_counter(5);
-    REQUIRE(chippie.memory()._get_program_counter() == 5);
+    chippie.memory().pc(5);
+    REQUIRE(chippie.memory().pc() == 5);
 
     // verify sp sets properly
-    chippie.memory()._set_stack_pointer(15);
-    REQUIRE(chippie.memory()._get_stack_pointer() == 15);
+    chippie.memory().sp(15);
+    REQUIRE(chippie.memory().sp() == 15);
 
     // verify index reg sets properly
-    chippie.memory()._set_index_register(1001);
-    REQUIRE(chippie.memory()._get_index_register() == 1001);
+    chippie.memory().i_reg(1001);
+    REQUIRE(chippie.memory().i_reg() == 1001);
 
     // verify pc cannot be set outside valid range
-    REQUIRE_THROWS(chippie.memory()._set_program_counter(70000));
-    REQUIRE_THROWS(chippie.memory()._set_program_counter(-1));
+    REQUIRE_THROWS(chippie.memory().pc(70000));
+    REQUIRE_THROWS(chippie.memory().pc(-1));
 
     // verify sp cannot be set outside valid range
-    REQUIRE_THROWS(chippie.memory()._set_stack_pointer(256));
-    REQUIRE_THROWS(chippie.memory()._set_stack_pointer(-1));
+    REQUIRE_THROWS(chippie.memory().sp(256));
+    REQUIRE_THROWS(chippie.memory().sp(-1));
     // verify setting and getting vreg
-    chippie.memory()._set_vregister(0, 100);
-    REQUIRE(chippie.memory()._get_vregister(0) == 100);
+    chippie.memory().v_reg(0, 100);
+    REQUIRE(chippie.memory().v_reg(0) == 100);
     // error out on bad vreg index
-    REQUIRE_THROWS(chippie.memory()._get_vregister(-1));
-    REQUIRE_THROWS(chippie.memory()._get_vregister(16));
+    REQUIRE_THROWS(chippie.memory().v_reg(-1));
+    REQUIRE_THROWS(chippie.memory().v_reg(16));
 
-    REQUIRE_THROWS(chippie.memory()._set_vregister(-1, 100));
-    REQUIRE_THROWS(chippie.memory()._set_vregister(16, 100));
-    REQUIRE_THROWS(chippie.memory()._set_vregister(0, 256));
-    REQUIRE_THROWS(chippie.memory()._set_vregister(0, -1));
+    REQUIRE_THROWS(chippie.memory().v_reg(-1, 100));
+    REQUIRE_THROWS(chippie.memory().v_reg(16, 100));
+    REQUIRE_THROWS(chippie.memory().v_reg(0, 256));
+    REQUIRE_THROWS(chippie.memory().v_reg(0, -1));
 
-    chippie.memory()._set_stack(0, 200);
-    REQUIRE(chippie.memory()._get_stack(0) == 200);
+    chippie.memory().stack_layer(0, 200);
+    REQUIRE(chippie.memory().stack_layer(0) == 200);
 
-    REQUIRE_THROWS(chippie.memory()._get_stack(-1));
-    REQUIRE_THROWS(chippie.memory()._get_stack(16));
+    REQUIRE_THROWS(chippie.memory().stack_layer(-1));
+    REQUIRE_THROWS(chippie.memory().stack_layer(16));
 
-    REQUIRE_THROWS(chippie.memory()._set_stack(-1, 300));
-    REQUIRE_THROWS(chippie.memory()._set_stack(16, 300));
-    REQUIRE_THROWS(chippie.memory()._set_stack(0, -1));
-    REQUIRE_THROWS(chippie.memory()._set_stack(0, 70000));
+    REQUIRE_THROWS(chippie.memory().stack_layer(-1, 300));
+    REQUIRE_THROWS(chippie.memory().stack_layer(16, 300));
+    REQUIRE_THROWS(chippie.memory().stack_layer(0, -1));
+    REQUIRE_THROWS(chippie.memory().stack_layer(0, 70000));
 
-    REQUIRE_THROWS(chippie.memory()._get_ram(-1));
-    REQUIRE_THROWS(chippie.memory()._get_ram(4096));
+    REQUIRE_THROWS(chippie.memory().ram(-1));
+    REQUIRE_THROWS(chippie.memory().ram(4096));
 
-    REQUIRE_THROWS(chippie.memory()._set_index_register(-1));
-    REQUIRE_THROWS(chippie.memory()._set_index_register(4096));
+    REQUIRE_THROWS(chippie.memory().i_reg(-1));
+    REQUIRE_THROWS(chippie.memory().i_reg(4096));
 
 
 }
@@ -95,10 +95,10 @@ TEST_CASE("font Test"){
     Chippie chippie{};
 
     // probe a couple font data
-    REQUIRE(chippie.memory().get_font_byte(0) == 0xF0); // first font byte
-    REQUIRE(chippie.memory().get_font_byte(79) == 0x80); // last font byte
+    REQUIRE(chippie.memory().font_byte(0) == 0xF0); // first font byte
+    REQUIRE(chippie.memory().font_byte(79) == 0x80); // last font byte
 
-    REQUIRE_THROWS(chippie.memory().get_font_byte(-1));
-    REQUIRE_THROWS(chippie.memory().get_font_byte(80));
+    REQUIRE_THROWS(chippie.memory().font_byte(-1));
+    REQUIRE_THROWS(chippie.memory().font_byte(80));
 
 }
