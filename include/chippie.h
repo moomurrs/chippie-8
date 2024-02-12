@@ -166,14 +166,18 @@ public:
 
             // skip instruction(2 bytes) if vx == nn
             spdlog::info("3XNN");
+            // v index
             uint8_t x = (opcode & x_mask) >> 8;
+            // v reg value
+            uint8_t vx = _memory.v_reg(x);
+            // immediate value
             uint8_t nn = opcode & nn_mask;
-
-            if(x == nn){
+            // skip the next instruction if equal
+            if(vx == nn){
                 _memory.move_pc();
             }
 
-            spdlog::info("x: 0x{:x}", x);
+            spdlog::info("vx: 0x{:x}", vx);
             spdlog::info("nn: 0x{:x}", nn);
             _memory.move_pc();
 
@@ -185,14 +189,18 @@ public:
 
             // skip instruction(2 bytes) if vx != nn
             spdlog::info("4XNN");
+            // v index
             uint8_t x = (opcode & x_mask) >> 8;
+            // v reg value
+            uint8_t vx = _memory.v_reg(x);
+            // immediate value
             uint8_t nn = opcode & nn_mask;
-
-            if(x != nn){
+            // skip the next instruction if not equal
+            if(vx != nn){
                 _memory.move_pc();
             }
 
-            spdlog::info("x: 0x{:x}", x);
+            spdlog::info("vx: 0x{:x}", vx);
             spdlog::info("nn: 0x{:x}", nn);
             _memory.move_pc();
 
@@ -203,9 +211,17 @@ public:
         {
 
             // skip if vx == vy
-            spdlog::info("5XN0");
-            uint8_t vx = (opcode & x_mask) >> 8;
-            uint8_t vy = opcode & y_mask >> 4;
+            spdlog::info("5XY0");
+            // x index
+            uint8_t x = (opcode & x_mask) >> 8;
+            // y index
+            uint8_t y = opcode & y_mask >> 4;
+
+            // vx reg value
+            uint8_t vx = _memory.v_reg(x);
+            // vy reg value
+            uint8_t vy = _memory.v_reg(y);
+
 
             if(vx == vy){
                 _memory.move_pc();
@@ -217,6 +233,48 @@ public:
 
             break;
         }
+
+        case 0x9:
+            {
+                // skip if vx != vy
+                spdlog::info("9XY0");
+                // x index
+                uint8_t x = (opcode & x_mask) >> 8;
+                // y index
+                uint8_t y = opcode & y_mask >> 4;
+
+                // vx reg value
+                uint8_t vx = _memory.v_reg(x);
+                // vy reg value
+                uint8_t vy = _memory.v_reg(y);
+
+                if(vx != vy){
+                    _memory.move_pc();
+                }
+
+
+                spdlog::info("vx: 0x{:x}", vx);
+                spdlog::info("vy: 0x{:x}", vy);
+                _memory.move_pc();
+                break;
+            }
+
+        case 0x2:
+            {
+                // run subroutine at nnn, cache current pc on stack
+                spdlog::info("2NNN");
+                uint16_t  sub_routine = opcode & nnn_mask;
+
+                uint16_t current_sp = _memory.sp();
+                uint16_t current_pc = _memory.pc();
+
+                // push program counter to stack
+                _memory.stack_layer(current_sp, current_pc);
+
+                _memory.pc(sub_routine);
+
+                break;
+            }
 
         default:
             spdlog::critical("bad instruction or data: 0x{:x}", opcode);
