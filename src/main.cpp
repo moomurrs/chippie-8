@@ -6,7 +6,7 @@ constexpr auto SCREEN_HEIGHT = 450;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
-    SetTargetFPS(10);
+    SetTargetFPS(5);
 
     Chippie chippie{};
     //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");

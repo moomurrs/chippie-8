@@ -215,7 +215,7 @@ public:
             // x index
             uint8_t x = (opcode & x_mask) >> 8;
             // y index
-            uint8_t y = opcode & y_mask >> 4;
+            uint8_t y = (opcode & y_mask) >> 4;
 
             // vx reg value
             uint8_t vx = _memory.v_reg(x);
@@ -241,7 +241,7 @@ public:
                 // x index
                 uint8_t x = (opcode & x_mask) >> 8;
                 // y index
-                uint8_t y = opcode & y_mask >> 4;
+                uint8_t y = (opcode & y_mask) >> 4;
 
                 // vx reg value
                 uint8_t vx = _memory.v_reg(x);
@@ -252,6 +252,8 @@ public:
                     _memory.move_pc();
                 }
 
+                spdlog::info("x: 0x{:x}", x);
+                spdlog::info("y: 0x{:x}", y);
 
                 spdlog::info("vx: 0x{:x}", vx);
                 spdlog::info("vy: 0x{:x}", vy);
