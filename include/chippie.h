@@ -4,11 +4,16 @@
 #include <spdlog/spdlog.h>
 #include "memory.h"
 #include "display.h"
+#include "input.h"
 
 class Chippie {
 public:
     Chippie(){
         spdlog::info("chip8: initializing...");
+    }
+
+    void update_input(){
+        _input.update_input();
     }
 
     void fetch_and_execute_opcode(){
@@ -98,13 +103,44 @@ public:
             {
                 // set index register i
                 spdlog::info("ANNN");
-                const uint16_t  val = opcode & nnn_mask;
-                _memory.i_reg(val);
+                const uint16_t  nnn = opcode & nnn_mask;
+                _memory.i_reg(nnn);
                 _memory.move_pc();
                 break;
             }
 
+        case 0xB:
+            {
+                // jump to address nnn + v0
+                spdlog::info("BNNN");
+                const uint16_t  nnn = opcode & nnn_mask;
+                const uint8_t v0 = _memory.v_reg(0);
+                _memory.pc(nnn + v0);
+                //_memory.move_pc();
+                break;
+            }
 
+        case 0xC:
+            {
+
+                // AND random num with nn, put in vx
+                spdlog::info("CXNN");
+                // v index
+                const uint8_t x = (opcode & x_mask) >> 8;
+                // v reg value
+                const uint8_t vx = _memory.v_reg(x);
+                // immediate value
+                const uint8_t nn = opcode & nn_mask;
+
+                const uint8_t random = _memory.random_number();
+
+                _memory.v_reg(x, (random & nn));
+
+                //spdlog::info("vx: 0x{:x}", vx);
+                //spdlog::info("nn: 0x{:x}", nn);
+                _memory.move_pc();
+                break;
+            }
 
         case 0x1:
             {
@@ -303,6 +339,8 @@ public:
                     _memory.v_reg(x, vx ^ vy);
                 }else if(derivative == 0x4){
                     spdlog::info("0x8XY version 4");
+                    // only keep lower byte, if overflowed
+                    _memory.v_reg(x, (uint8_t) (vx + vy));
                     if(vx + vy > 255){
                         // vf carry enable
                         _memory.v_reg(0xF, 1);
@@ -311,18 +349,15 @@ public:
                         _memory.v_reg(0xF, 0);
                     }
 
-                    // only keep lower byte, if overflowed
-                    _memory.v_reg(x, (uint8_t) (vx + vy));
-
                 }else if(derivative == 0x5){
                     spdlog::info("0x8XY version 5");
-                    if(vx > vy){
-                        _memory.v_reg(0xF, 1);
-                    }else{
-                        _memory.v_reg(0xF, 0);
-                    }
                     // only keep lower byte, if underflowed
                     _memory.v_reg(x, (uint8_t)(vx - vy));
+                    if(vx - vy < 0){
+                        _memory.v_reg(0xF, 0);
+                    }else{
+                        _memory.v_reg(0xF, 1);
+                    }
 
                 }else if(derivative == 0x6){
                     spdlog::info("0x8XY version 6");
@@ -340,13 +375,13 @@ public:
 
                 }else if(derivative == 0x7){
                     spdlog::info("0x8XY version 7");
-                    if(vy > vx){
-                        _memory.v_reg(0xF, 1);
-                    }else{
-                        _memory.v_reg(0xF, 0);
-                    }
                     // only keep lower byte, if underflowed
                     _memory.v_reg(x, (uint8_t)(vy - vx));
+                    if(vy - vx < 0){
+                        _memory.v_reg(0xF, 0);
+                    }else{
+                        _memory.v_reg(0xF, 1);
+                    }
 
                 }else if(derivative == 0xE){
                     spdlog::info("0x8XY version E");
@@ -401,6 +436,49 @@ public:
                 break;
             }
 
+        case 0xE:{
+
+            const uint8_t x = (opcode & x_mask) >> 8;
+            const uint8_t nn = opcode & nn_mask;
+            // vx reg value
+            const uint8_t vx = _memory.v_reg(x);
+
+            if(nn == 0x9E){
+                spdlog::info("0xEX 9E");
+                spdlog::info("key press check: {:x}", vx);
+
+                bool key_status = _input.is_pressing((Input::Keys)vx);
+
+
+                if(key_status){
+                    // pressed, skip next instruction
+                    _memory.move_pc();
+                    spdlog::info("pressed");
+                }else{
+                    spdlog::info("not pressed");
+
+                }
+
+            }else if(nn == 0xA1){
+                spdlog::info("0xEX A1");
+                spdlog::info("key press check: {:x}", vx);
+
+                bool key_status = _input.is_pressing((Input::Keys)vx);
+
+                if(!key_status){
+                    // not pressed, skip next instruction
+                    _memory.move_pc();
+                }
+
+            }else{
+                std::string err{"ERROR: bad 0xEX?? instruction"};
+                spdlog::error(err);
+                throw std::runtime_error{err};
+            }
+
+            break;
+        }
+
         case 0xF:
             {
                 const uint8_t x = (opcode & x_mask) >> 8;
@@ -447,6 +525,41 @@ public:
 
                     // add vx to current it
                     _memory.i_reg(i + vx);
+
+                }else if(nn == 0x07){
+                    spdlog::info("0xFX 07");
+                    const uint8_t dt = _memory.delay_timer();
+                    _memory.v_reg(x, dt);
+
+                }else if(nn == 0x15){
+                    spdlog::info("0xFX 15");
+
+                    // vx reg value
+                    const uint8_t vx = _memory.v_reg(x);
+
+                    _memory.delay_timer(vx);
+
+                }else if(nn == 0x18){
+                    spdlog::info("0xFX 18");
+
+                    // vx reg value
+                    const uint8_t vx = _memory.v_reg(x);
+
+                    _memory.sound_timer(vx);
+
+
+                }else if(nn == 0x0A){
+                    // TODO: get key
+                    /*
+                    int pressed_key = _input.get_input();
+
+                    if(pressed_key == KEY_NULL){
+                        // no input this cycle, repeat instruction
+                        _memory.move_back_pc();
+                    }else{
+                        // input received, assign to vx
+                        _memory.v_reg(x, pressed_key);
+                        }*/
 
                 }else{
                     std::string err{"ERROR: bad 0xF??? instruction "};
@@ -495,8 +608,13 @@ public:
         return _memory;
     }
 
+    Input& input(){
+        return _input;
+    }
+
 
 private:
     Display _display{1.0, BLACK, RED}; // graphics helpers
     Memory _memory{};      // internal chip8 memory
+    Input _input{};
 };

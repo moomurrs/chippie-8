@@ -88,7 +88,6 @@ public:
             std::string err{"ERROR: new sp outside range "};
             spdlog::critical(err + ": {:d}", new_sp);
             throw std::runtime_error{err};
-            return;
         }
         spdlog::info("old sp: {:d}, new sp: {:d}", stack_pointer, new_sp);
         stack_pointer = new_sp;
@@ -98,21 +97,45 @@ public:
         return delay_timer_count;
     }
 
-    void reset_delay_timer(){
-        delay_timer_count = 255;
+    void delay_timer(int new_time){
+        if(new_time < 0 || new_time > 255){
+            std::string err{"ERROR: new delay timer outside range "};
+            spdlog::critical(err + ": {:d}", new_time);
+            throw std::runtime_error{err};
+        }
+        delay_timer_count = new_time;
     }
 
     const uint8_t& sound_timer(){
         return sound_timer_count;
     }
 
-    void reset_sound_timer(){
-        sound_timer_count = 255;
+    void sound_timer(int new_time){
+        if(new_time < 0 || new_time > 255){
+            std::string err{"ERROR: new sound timer outside range "};
+            spdlog::critical(err + ": {:d}", new_time);
+            throw std::runtime_error{err};
+        }
+
+        if(new_time > 0){
+            // TODO: play beep
+            spdlog::info("playing beep");
+        }else{
+            // stop beep
+            spdlog::info("stopping beep");
+        }
+
+        sound_timer_count = new_time;
     }
 
     void move_pc(){
         spdlog::info("increment: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
         program_counter += 2;
+    }
+
+    void move_back_pc(){
+        spdlog::info("increment back: old pc: {:d}, new pc: {:d}", program_counter, program_counter - 2);
+        program_counter -= 2;
     }
 
     const uint8_t& v_reg(int32_t index){
