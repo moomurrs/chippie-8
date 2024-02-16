@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <spdlog/spdlog.h>
+#include "timer.h"
 
 class Display {
 public:
@@ -15,6 +16,7 @@ public:
         {
             // draw the blank pixels on startup
             spdlog::info("display: initializing...");
+            timer.start_timer();
         }
 
     // turn on all pixels
@@ -30,6 +32,8 @@ public:
     }
 
     void render(){
+        //if(!timer.is_timer_done()) return
+        ClearBackground(DARKGRAY);
         for(std::size_t i = 0; i < 32; i++){
             for(std::size_t j = 0; j < 64; j++){
                 if(pixel_buffer[i][j]){
@@ -45,10 +49,12 @@ public:
                 }
             }
         }
+        //timer.start_timer();
     }
 
     // clear entire screen
     void clear(){
+        //if(!timer.is_timer_done()) return
         std::fill(std::begin(pixel_buffer.at(0)), std::end(pixel_buffer.at(31)), 0);
         render_all(background_color);
         /*
@@ -57,6 +63,8 @@ public:
                       (64 * pixel_width) + (padding * 64 - 1),
                       (32 * pixel_height) + (padding * 32 - 1),
                       background_color);*/
+        //timer.start_timer();
+
     }
 
     std::array<std::array<bool, 64>, 32>& pixels(){
@@ -79,5 +87,7 @@ private:
 
     const Color background_color;
     const Color pixel_color;
+
+    Timer timer{};
 
 };

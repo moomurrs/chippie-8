@@ -27,17 +27,6 @@ public:
         F
     };
 
-    // return raylib key that was pressed
-    /*
-    int get_input(){
-        for(size_t i = 0; i < 16; i++){
-            if(input.at(i)){
-                return key_map.at(i);
-            }
-        }
-        // input buffer false, no input
-        return KEY_NULL;
-        }*/
 
     bool is_pressing(Keys key){
         if((int)key < 0 || (int) key > 15){
@@ -45,7 +34,8 @@ public:
             spdlog::error(err);
             throw std::runtime_error{err};
         }
-        return input.at((int)key);
+        return IsKeyDown(key_map.at((int)key));
+        //return input.at((int)key);
     }
 
     // for testing: print values from input buffer
@@ -68,7 +58,7 @@ public:
         // for each key, check if it was pressed or released
         for(size_t i = 0; i < 16; i++){
             if(IsKeyPressed(key_map.at(i))){
-                spdlog::info("input {:d} or 0x{:x}: yes", i, i);
+                //spdlog::info("input {:d} or 0x{:x}: yes", i, i);
                 input.at(i) = true;
             }else if(IsKeyReleased(key_map.at(i))){
                 //spdlog::info("input {:d} or 0x{:x}:  no", i, i);

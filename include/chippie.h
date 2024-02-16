@@ -476,6 +476,7 @@ public:
                 throw std::runtime_error{err};
             }
 
+            _memory.move_pc();
             break;
         }
 
@@ -509,8 +510,8 @@ public:
 
                     // get digit of vx
                     const uint8_t digit[3] = {(uint8_t) (vx / 100),
-                                            (uint8_t)((vx % 100) / 10),
-                                            (uint8_t) (vx % 10)};
+                                              (uint8_t)((vx % 100) / 10),
+                                              (uint8_t) (vx % 10)};
                     // assign each digit to i contiguous
                     for(size_t i = 0; i < 3; i++){
                         uint8_t& location = _memory.ram(start + i);
@@ -551,15 +552,15 @@ public:
                 }else if(nn == 0x0A){
                     // TODO: get key
                     /*
-                    int pressed_key = _input.get_input();
+                      int pressed_key = _input.get_input();
 
-                    if(pressed_key == KEY_NULL){
-                        // no input this cycle, repeat instruction
-                        _memory.move_back_pc();
-                    }else{
-                        // input received, assign to vx
-                        _memory.v_reg(x, pressed_key);
-                        }*/
+                      if(pressed_key == KEY_NULL){
+                      // no input this cycle, repeat instruction
+                      _memory.move_back_pc();
+                      }else{
+                      // input received, assign to vx
+                      _memory.v_reg(x, pressed_key);
+                      }*/
 
                 }else{
                     std::string err{"ERROR: bad 0xF??? instruction "};
