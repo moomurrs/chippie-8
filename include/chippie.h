@@ -16,17 +16,33 @@ public:
         _input.update_input();
     }
 
-    void fetch_and_execute_opcode(){
-
+    void fetch_and_update(){
         const uint16_t pc = _memory.pc();
+        first_half = *(_memory.ram_offset(pc));
+        second_half = *(_memory.ram_offset(pc + 1));
+        //spdlog::info("-----------------------------");
+        //spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
+        instruction_set = (first_half << 8) | second_half;
 
-        const uint16_t first = *(_memory.ram_offset(pc));
-        const uint8_t second = *(_memory.ram_offset(pc + 1));
+        if(GetTime() - start_time >= 0.0167){
+            uint8_t old_time = _memory.delay_timer();
+            if(old_time > 0){
+                _memory.delay_timer(old_time - 1);
+            }
+            // reset timer
+            start_time = GetTime();
+        }
+
+    }
+
+    void decode_execute_opcode(){
+
+        const uint16_t first = first_half;
+        const uint8_t second = second_half;
         spdlog::info("-----------------------------");
         spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
-        // put first byte into higher, second byte lower
-        const uint16_t opcode = (first << 8) | second;
+        const uint16_t opcode = instruction_set;
 
         constexpr uint16_t op_mask = 0xF000;
         constexpr uint16_t x_mask = 0x0F00; // 2nd nibble
@@ -38,22 +54,22 @@ public:
         // 12-bit immediate value
         constexpr uint16_t nnn_mask = 0x0FFF; // 2nd, 3rd, & 4th nibble
 
-        const uint8_t instruction = (opcode & op_mask) >> 12;
+        const uint8_t command_nibble = (opcode & op_mask) >> 12;
 
-        switch(instruction){
+        switch(command_nibble){
         case 0xD:
             {
                 // render display
                 spdlog::info("DXYN");
+                //spdlog::critical("unlocked at {:03.8}", GetTime());
                 const uint16_t x_nibble = (opcode & x_mask) >> 8;
                 const uint16_t y_nibble = (opcode & y_mask) >> 4;
                 const uint16_t n_rows = (opcode & n_mask);
 
-                const uint16_t x_pos_corner = _memory.v_reg(x_nibble) % 64;
-                const uint16_t y_pos_corner = _memory.v_reg(y_nibble) % 32;
+                const uint16_t y_pos_corner = _memory.v_reg(y_nibble);
+                const uint16_t x_pos_corner = _memory.v_reg(x_nibble);
 
-                spdlog::info("x: {:d}, y: {:d}, n: {:d}", x_pos_corner, y_pos_corner, n_rows);
-
+                //spdlog::info("x: {:d}, y: {:d}, n: {:d}", x_pos_corner, y_pos_corner, n_rows);
                 // set vf to 0
                 _memory.v_reg(15, 0);
 
@@ -62,30 +78,64 @@ public:
                 uint8_t bit_mask = 0b10000000;
                 // height of sprite
                 for(size_t i = 0; i < n_rows; i++){
+                    // stop drawing sprite if bottom of screen
 
+                    //const uint16_t y_pos_corner = _memory.v_reg((y_nibble + i) % 32);
+                    if((y_pos_corner + i) > 32) break;
                     const uint16_t index = _memory.i_reg() + i;
                     //spdlog::info("index: {:d}", index);
                     const uint8_t sprite = *_memory.ram_offset(index);
 
                     // width of sprite
                     for(size_t j = 0; j < 8; j++){
+                        // stop drawing width if past right screen edge
+                        //const uint16_t x_pos_corner = _memory.v_reg((x_nibble + i) % 64);
+                        if((x_pos_corner + j) > 64) break;
 
                         const bool pixel_request = sprite & bit_mask;
-                        const bool pixel_status = _display.pixels()[i][j];
+                        const bool pixel_status = _display.pixels()[y_pos_corner + i][x_pos_corner + j];
 
                         //spdlog::info("requested: {:d}, status: {:d}", pixel_request, pixel_status);
-
-                        if((sprite & bit_mask)){
-                            // pixel ON requested
-                            if(_display.pixels()[y_pos_corner + i][x_pos_corner + j]){
-                                // display pixel on, turn off
-                                _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
-                                _memory.v_reg(15, 1);
-                            }else{
-                                // display pixel OFF, turn ON
-                                _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
+                        _memory.v_reg(0xF, 0);
+                        // pixel ON requested
+                        if(pixel_request){
+                            // display pixel current on
+                            if(pixel_status){
+                                // on requested, screen pixel already on - do nothing, set vf flag
+                                //_display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
+                                _memory.v_reg(0xF, 1);
                             }
+                            //else{
+                            //    // on requested, screen pixel off, turn on
+                            //    _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
+                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, true);
+                            //}
+
+
+
+                            //else{
+                            //_display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
+                            //}
+                            // TODO: render just 1 pixel
+                            //_display_render_pixel();
+
+
                         }
+                        /*
+                        else{
+                            if(_display.pixels()[y_pos_corner + i][x_pos_corner + j]){
+                                // off requested, screen pixel on, turn off
+                                _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
+                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, false);
+                            }else{
+                                // off requested, screen pixel off - do nothing
+                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, true);
+                            }
+                            }*/
+                        _display.pixels()[y_pos_corner + i][x_pos_corner + j] ^= (sprite & bit_mask);
+                        //else{
+                        //    _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
+                        //}
 
                         bit_mask >>= 1;
 
@@ -103,7 +153,7 @@ public:
             {
                 // set index register i
                 spdlog::info("ANNN");
-                const uint16_t  nnn = opcode & nnn_mask;
+                const uint16_t nnn = opcode & nnn_mask;
                 _memory.i_reg(nnn);
                 _memory.move_pc();
                 break;
@@ -113,8 +163,12 @@ public:
             {
                 // jump to address nnn + v0
                 spdlog::info("BNNN");
-                const uint16_t  nnn = opcode & nnn_mask;
                 const uint8_t v0 = _memory.v_reg(0);
+                const uint16_t  nnn = opcode & nnn_mask;
+                //const uint8_t x = (opcode & x_mask) >> 8;
+                // v reg value
+                //const uint8_t vx = _memory.v_reg(x);
+
                 _memory.pc(nnn + v0);
                 //_memory.move_pc();
                 break;
@@ -331,12 +385,15 @@ public:
                 }else if(derivative == 0x1){
                     spdlog::info("0x8XY version 1");
                     _memory.v_reg(x, vx | vy);
+                    _memory.v_reg(0xF, 0);
                 }else if(derivative == 0x2){
                     spdlog::info("0x8XY version 2");
                     _memory.v_reg(x, vx & vy);
+                    _memory.v_reg(0xF, 0);
                 }else if(derivative == 0x3){
                     spdlog::info("0x8XY version 3");
                     _memory.v_reg(x, vx ^ vy);
+                    _memory.v_reg(0xF, 0);
                 }else if(derivative == 0x4){
                     spdlog::info("0x8XY version 4");
                     // only keep lower byte, if overflowed
@@ -368,8 +425,11 @@ public:
                     const uint8_t bit_mask = 0b00000001;
                     const uint8_t last_bit = vx & bit_mask;
 
+                    // grab new vx again
+                    const uint8_t new_vx = _memory.v_reg(x);
+
                     // shift vx right 1 bit, update index x
-                    _memory.v_reg(x, vx >> 1);
+                    _memory.v_reg(x, new_vx >> 1);
                     // carry set, depending on value of bit shifted out
                     _memory.v_reg(0xF, last_bit);
 
@@ -388,12 +448,14 @@ public:
 
                     // vy value to x index
                     _memory.v_reg(x, vy);
+                    // grab new vx again
+                    const uint8_t new_vx = _memory.v_reg(x);
                     // shift vx right 1 bit
                     const uint8_t bit_mask = 0b10000000;
-                    const uint8_t last_bit = (vx & bit_mask) >> 7;
+                    const uint8_t last_bit = (new_vx & bit_mask) >> 7;
 
                     //spdlog::info("vx: {:x}", vx);
-                    uint8_t vx_left_shift = vx << 1;
+                    uint8_t vx_left_shift = new_vx << 1;
                     //spdlog::info("LEFT: {:x}", vx_left_shift);
 
                     // shift vx left 1 bit, update index x
@@ -493,6 +555,7 @@ public:
                     for(size_t i = 0; i <= x; i++){
                         const uint8_t& location = _memory.ram(start + i);
                         _memory.v_reg(i, location);
+                        _memory.i_reg(location);
                     }
 
                 }else if(nn == 0x55){
@@ -502,6 +565,7 @@ public:
                     for(size_t i = 0; i <= x; i++){
                         uint8_t& location = _memory.ram(start + i);
                         location = _memory.v_reg(i);
+                        _memory.i_reg(location);
                     }
 
                 }else if(nn == 0x33){
@@ -613,9 +677,42 @@ public:
         return _input;
     }
 
+    void store_instruction(uint16_t instruction){
+        instruction_set = instruction;
+    }
+
+    uint16_t get_instruction(){
+        return instruction_set;
+    }
+
+    void store_first_half(uint8_t first_byte){
+        first_half = first_byte;
+    }
+
+    uint8_t get_first_half(){
+        return first_half;
+    }
+
+    void store_second_half(uint8_t second_byte){
+        second_half = second_byte;
+    }
+
+    uint8_t get_second_half(){
+        return second_half;
+    }
+
+    bool is_draw_instruction(){
+        const uint8_t command_nibble = (instruction_set & 0xF000) >> 12;
+        return instruction_set == 0x00E0 || command_nibble == 0xD;
+    }
+
 
 private:
     Display _display{1.0, BLACK, RED}; // graphics helpers
     Memory _memory{};      // internal chip8 memory
     Input _input{};
+    uint16_t instruction_set;
+    uint8_t first_half;
+    uint8_t second_half;
+    double start_time;
 };

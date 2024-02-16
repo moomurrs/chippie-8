@@ -52,6 +52,37 @@ public:
         //timer.start_timer();
     }
 
+    void render_pixel(int x, int y, bool is_on){
+        if(x < 0 || x > 64){
+            std::string err{"ERROR: pixel x out of range "};
+            spdlog::error(err);
+            throw std::runtime_error{err};
+        }
+        if(y < 0 || y > 32){
+            std::string err{"ERROR: pixel y out of range "};
+            spdlog::error(err);
+            throw std::runtime_error{err};
+        }
+
+        Color color = is_on ? pixel_color : background_color;
+
+        /*
+        int temp_x = 63;
+        int temp_y = 31;
+
+        DrawRectangle(width_offset + (pixel_width * temp_x) + (padding * temp_x),
+                      height_offset + (pixel_height * temp_y) + (padding * temp_y),
+                      pixel_width, pixel_height,
+                      GREEN);*/
+
+        //spdlog::info("rendering pixel: ({:d},{:d}), color: {:d}", x, y, a);
+
+        DrawRectangle(width_offset + (pixel_width * x) + (padding * x),
+                      height_offset + (pixel_height * y) + (padding * y),
+                      pixel_width, pixel_height,
+                      color);
+    }
+
     // clear entire screen
     void clear(){
         //if(!timer.is_timer_done()) return
