@@ -61,84 +61,54 @@ public:
             {
                 // render display
                 spdlog::info("DXYN");
-                //spdlog::critical("unlocked at {:03.8}", GetTime());
                 const uint16_t x_nibble = (opcode & x_mask) >> 8;
                 const uint16_t y_nibble = (opcode & y_mask) >> 4;
                 const uint16_t n_rows = (opcode & n_mask);
 
-                const uint16_t y_pos_corner = _memory.v_reg(y_nibble);
-                const uint16_t x_pos_corner = _memory.v_reg(x_nibble);
+                // wrap starting position
+                const uint16_t x_pos_corner = (_memory.v_reg(x_nibble)) % 64;
+                const uint16_t y_pos_corner = (_memory.v_reg(y_nibble)) % 32;
 
-                //spdlog::info("x: {:d}, y: {:d}, n: {:d}", x_pos_corner, y_pos_corner, n_rows);
                 // set vf to 0
                 _memory.v_reg(15, 0);
-
-                //spdlog::info("n address: {:d}", _memory._get_index_register());
 
                 uint8_t bit_mask = 0b10000000;
                 // height of sprite
                 for(size_t i = 0; i < n_rows; i++){
-                    // stop drawing sprite if bottom of screen
-
-                    //const uint16_t y_pos_corner = _memory.v_reg((y_nibble + i) % 32);
-                    if((y_pos_corner + i) > 32) break;
+                    // clip sprite height if too long
+                    if((y_pos_corner + i) > 31){
+                        spdlog::critical("too long! y start: {:d}, i: {:d}", y_pos_corner, i);
+                        break;
+                    }
                     const uint16_t index = _memory.i_reg() + i;
                     //spdlog::info("index: {:d}", index);
                     const uint8_t sprite = *_memory.ram_offset(index);
 
                     // width of sprite
                     for(size_t j = 0; j < 8; j++){
-                        // stop drawing width if past right screen edge
-                        //const uint16_t x_pos_corner = _memory.v_reg((x_nibble + i) % 64);
-                        if((x_pos_corner + j) > 64) break;
+                        // clip sprite width if too wide
+                        if((x_pos_corner + j) > 63){
+                            spdlog::critical("too wide! x start: {:d}, j: {:d}", x_pos_corner, j);
+                            break;
+                        }
 
                         const bool pixel_request = sprite & bit_mask;
                         const bool pixel_status = _display.pixels()[y_pos_corner + i][x_pos_corner + j];
 
                         //spdlog::info("requested: {:d}, status: {:d}", pixel_request, pixel_status);
-                        _memory.v_reg(0xF, 0);
                         // pixel ON requested
                         if(pixel_request){
                             // display pixel current on
                             if(pixel_status){
                                 // on requested, screen pixel already on - do nothing, set vf flag
-                                //_display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
-                                _memory.v_reg(0xF, 1);
-                            }
-                            //else{
-                            //    // on requested, screen pixel off, turn on
-                            //    _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
-                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, true);
-                            //}
-
-
-
-                            //else{
-                            //_display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
-                            //}
-                            // TODO: render just 1 pixel
-                            //_display_render_pixel();
-
-
-                        }
-                        /*
-                        else{
-                            if(_display.pixels()[y_pos_corner + i][x_pos_corner + j]){
-                                // off requested, screen pixel on, turn off
                                 _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
-                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, false);
+                                _memory.v_reg(0xF, 1);
                             }else{
-                                // off requested, screen pixel off - do nothing
-                                //_display.render_pixel(x_pos_corner + j, y_pos_corner + i, true);
+                                _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
                             }
-                            }*/
-                        _display.pixels()[y_pos_corner + i][x_pos_corner + j] ^= (sprite & bit_mask);
-                        //else{
-                        //    _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
-                        //}
+                        }
 
                         bit_mask >>= 1;
-
                     }
                     // reset bitmask
                     bit_mask = 0b10000000;
