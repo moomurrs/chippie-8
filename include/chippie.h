@@ -12,10 +12,6 @@ public:
         spdlog::info("chip8: initializing...");
     }
 
-    void update_input(){
-        _input.update_input();
-    }
-
     void fetch_and_update(){
         const uint16_t pc = _memory.pc();
         first_half = *(_memory.ram_offset(pc));
@@ -24,8 +20,9 @@ public:
         //spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
         instruction_set = (first_half << 8) | second_half;
 
-        if(GetTime() - start_time >= 0.0167){
+        if(GetTime() - start_time >= delay_tick_delta){
             uint8_t old_time = _memory.delay_timer();
+            //spdlog::critical("1 tick!");
             if(old_time > 0){
                 _memory.delay_timer(old_time - 1);
             }
@@ -77,7 +74,7 @@ public:
                 for(size_t i = 0; i < n_rows; i++){
                     // clip sprite height if too long
                     if((y_pos_corner + i) > 31){
-                        spdlog::critical("too long! y start: {:d}, i: {:d}", y_pos_corner, i);
+                        //spdlog::critical("too long! y start: {:d}, i: {:d}", y_pos_corner, i);
                         break;
                     }
                     const uint16_t index = _memory.i_reg() + i;
@@ -88,7 +85,7 @@ public:
                     for(size_t j = 0; j < 8; j++){
                         // clip sprite width if too wide
                         if((x_pos_corner + j) > 63){
-                            spdlog::critical("too wide! x start: {:d}, j: {:d}", x_pos_corner, j);
+                            //spdlog::critical("too wide! x start: {:d}, j: {:d}", x_pos_corner, j);
                             break;
                         }
 
@@ -552,6 +549,14 @@ public:
                         location = digit[i];
                     }
 
+                }else if(nn == 0x29){
+                    // load font
+                    spdlog::info("0xFX 29");
+
+                    const uint8_t font_offset = _memory.v_reg(x);
+                    const uint16_t font_location = 0x050 + (font_offset * 5);
+                    _memory.i_reg(font_location);
+
                 }else if(nn == 0x1E){
                     spdlog::info("0xFX 1E");
 
@@ -562,16 +567,16 @@ public:
                     _memory.i_reg(i + vx);
 
                 }else if(nn == 0x07){
+                    // set vx to delay timer value
                     spdlog::info("0xFX 07");
                     const uint8_t dt = _memory.delay_timer();
                     _memory.v_reg(x, dt);
 
                 }else if(nn == 0x15){
+                    // set delay timer to vx
                     spdlog::info("0xFX 15");
-
                     // vx reg value
                     const uint8_t vx = _memory.v_reg(x);
-
                     _memory.delay_timer(vx);
 
                 }else if(nn == 0x18){
@@ -584,17 +589,18 @@ public:
 
 
                 }else if(nn == 0x0A){
-                    // TODO: get key
-                    /*
-                      int pressed_key = _input.get_input();
+                    spdlog::info("0xFX 0A");
 
-                      if(pressed_key == KEY_NULL){
-                      // no input this cycle, repeat instruction
-                      _memory.move_back_pc();
-                      }else{
-                      // input received, assign to vx
-                      _memory.v_reg(x, pressed_key);
-                      }*/
+                    Input::Keys pressed_key = _input.get_pressed_key();
+
+                    if(_input.is_not_pressed() || _input.is_released()){
+                        // no input or not released this cycle, repeat instruction
+                        _memory.move_back_pc();
+                    }else{
+                        // input released, assign to vx
+                        _memory.v_reg(x, (uint8_t)_input.released_key_value());
+                        _input.reset_key_stage();
+                    }
 
                 }else{
                     std::string err{"ERROR: bad 0xF??? instruction "};
@@ -685,4 +691,5 @@ private:
     uint8_t first_half;
     uint8_t second_half;
     double start_time;
+    constexpr static double delay_tick_delta = 1.0 / 60.0;
 };

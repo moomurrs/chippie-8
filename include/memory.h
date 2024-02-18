@@ -245,7 +245,7 @@ private:
     uint16_t index_register = 0;  // store memory address for in-use operations
     std::array<uint16_t, 16> stack{}; // stack is 16 layers deep, keeping track of new and old PC
     uint8_t stack_pointer = 0;
-    uint8_t delay_timer_count = 255;    // decremented 60 times per sec until 0
+    uint8_t delay_timer_count = 0;    // decremented 60 times per sec until 0
     uint8_t sound_timer_count = 255;    //
     /* general purpose variable registers */
     std::array<uint8_t, 16> vregisters{};

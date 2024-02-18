@@ -24,12 +24,14 @@ public:
         C,
         D,
         E,
-        F
+        F,
+        NONE
     };
 
-
+    // return the status of the supplied keypad
+    // used by EX?? input instructions
     bool is_pressing(Keys key){
-        if((int)key < 0 || (int) key > 15){
+        if((int)key < 0 || (int) key > 16){
             std::string err{"ERROR: key enum out of range (are you using key raylib values?)"};
             spdlog::error(err);
             throw std::runtime_error{err};
@@ -38,40 +40,49 @@ public:
         //return input.at((int)key);
     }
 
-    // for testing: print values from input buffer
-    void print_keys(){
-        update_input();
-        for(size_t i = 0; i < 16; i++){
-            if(input.at(i)){
-                //spdlog::info("{:d}: 1", i);
-                std::cout << i << ": " << "y" << " ";
-            }else{
-                //spdlog::info("{:d}:", i);
-                std::cout << i << ": " << " " << " ";
+    Keys get_pressed_key(){
+        int raylib_key = GetKeyPressed();
+
+        Keys key = Keys::NONE;
+
+        for(const auto& [index_key, value_raylib] : key_map){
+            if(value_raylib == raylib_key){
+                // raylib -> Keys mapping match found
+                key = (Input::Keys)index_key;
+
+                if(key == Keys::NONE){
+                    if(key_stage == 1){
+                        // key was released
+                        key_stage = 2;
+                        released_key = key;
+                    }
+
+                }else{
+                    // key is pressed
+                    key_stage = 1;
+                }
             }
         }
-        std::cout << "\n";
+        return key;
     }
 
-    // query button press and update input buffer
-    void update_input(){
-        // for each key, check if it was pressed or released
-        for(size_t i = 0; i < 16; i++){
-            if(IsKeyPressed(key_map.at(i))){
-                //spdlog::info("input {:d} or 0x{:x}: yes", i, i);
-                input.at(i) = true;
-            }else if(IsKeyReleased(key_map.at(i))){
-                //spdlog::info("input {:d} or 0x{:x}:  no", i, i);
-                input.at(i) = false;
-            }
-        }
+    Keys released_key_value(){
+        return released_key;
     }
 
+    bool is_not_pressed(){
+        return key_stage == 0;
+    }
 
+    bool is_released(){
+        return key_stage == 2;
+    }
+
+    void reset_key_stage(){
+        key_stage = 0;
+    }
 
 private:
-    // input buffer to track button presses
-    std::array<bool, 16> input{};
     // remap 0-15 to raylib key values
     std::map<int, int> key_map= {
         {0, KEY_ZERO},
@@ -89,7 +100,13 @@ private:
         {12, KEY_C},
         {13, KEY_D},
         {14, KEY_E},
-        {15, KEY_F}
+        {15, KEY_F},
+        {16, KEY_NULL} // no press
     };
 
+    Keys released_key = Keys::NONE;
+    // 0: not pressed
+    // 1: pressing
+    // 2: released
+    int key_stage = 0;
 };
