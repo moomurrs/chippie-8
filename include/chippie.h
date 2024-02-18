@@ -24,6 +24,7 @@ public:
             uint8_t old_time = _memory.delay_timer();
             //spdlog::critical("1 tick!");
             if(old_time > 0){
+                //spdlog::critical("new time: {:d}, old time: {:d}", old_time - 1, old_time);
                 _memory.delay_timer(old_time - 1);
             }
             // reset timer
@@ -522,18 +523,26 @@ public:
                     for(size_t i = 0; i <= x; i++){
                         const uint8_t& location = _memory.ram(start + i);
                         _memory.v_reg(i, location);
-                        _memory.i_reg(location);
+                        _memory.i_reg(location + x);
                     }
+
 
                 }else if(nn == 0x55){
                     spdlog::info("0xFX 55");
                     // copy register values [0, x] to ram contiguous, starting at i
-
+                    //const uint16_t start_location = _memory.i_reg();
                     for(size_t i = 0; i <= x; i++){
+
                         uint8_t& location = _memory.ram(start + i);
                         location = _memory.v_reg(i);
                         _memory.i_reg(location);
+
+
+                        //uint8_t& item = _memory.ram(start_location + i);
+                        //item = _memory.v_reg(i);
+
                     }
+                    //_memory.i_reg(start_location + x);
 
                 }else if(nn == 0x33){
                     spdlog::info("0xFX 33");
@@ -555,6 +564,12 @@ public:
 
                     const uint8_t font_offset = _memory.v_reg(x);
                     const uint16_t font_location = 0x050 + (font_offset * 5);
+
+                    spdlog::critical("index: {:d}, font: {:d}, timer: {:d}",
+                                     font_offset,
+                                     font_location,
+                                     _memory.delay_timer());
+
                     _memory.i_reg(font_location);
 
                 }else if(nn == 0x1E){
