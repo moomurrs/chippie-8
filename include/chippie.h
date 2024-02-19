@@ -173,7 +173,7 @@ public:
                 // jump to immediate value nnn
                 const uint16_t val = opcode & nnn_mask;
                 _memory.pc(val);
-                spdlog::info("1NNN: to location {:x}", val);
+                //spdlog::info("1NNN: to location {:x}", val);
                 // dont increment pc
                 break;
             }

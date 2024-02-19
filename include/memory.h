@@ -32,8 +32,8 @@ public:
         program_counter = 0x200;
         index_register = 0;
         stack_pointer = 0;
-        delay_timer_count = 255;
-        sound_timer_count = 255;
+        delay_timer_count = 0;
+        sound_timer_count = 0;
         for(size_t i = 0; i < 16; i++){
             stack.at(i) = 0;
             vregisters.at(i) = 0;
@@ -260,7 +260,7 @@ private:
     std::array<uint16_t, 16> stack{}; // stack is 16 layers deep, keeping track of new and old PC
     uint8_t stack_pointer = 0;
     uint8_t delay_timer_count = 0;    // decremented 60 times per sec until 0
-    uint8_t sound_timer_count = 255;    //
+    uint8_t sound_timer_count = 0;    //
     /* general purpose variable registers */
     std::array<uint8_t, 16> vregisters{};
 
