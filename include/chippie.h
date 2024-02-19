@@ -21,12 +21,20 @@ public:
         instruction_set = (first_half << 8) | second_half;
 
         if(GetTime() - start_time >= delay_tick_delta){
-            uint8_t old_time = _memory.delay_timer();
+            uint8_t previous_delay = _memory.delay_timer();
+            uint8_t previous_sound = _memory.sound_timer();
             //spdlog::critical("1 tick!");
-            if(old_time > 0){
+            if(previous_delay > 0){
                 //spdlog::critical("new time: {:d}, old time: {:d}", old_time - 1, old_time);
-                _memory.delay_timer(old_time - 1);
+                _memory.delay_timer(previous_delay - 1);
             }
+            if(previous_sound > 0){
+                //spdlog::critical("new sound: {:d}, old sound: {:d}", previous_sound - 1, previous_sound);
+                _memory.sound_timer(previous_sound - 1);
+                // play sound
+                _memory.play_sound();
+            }
+
             // reset timer
             start_time = GetTime();
         }
@@ -35,8 +43,6 @@ public:
 
     void decode_execute_opcode(){
 
-        const uint16_t first = first_half;
-        const uint8_t second = second_half;
         //spdlog::info("-----------------------------");
         //spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
@@ -149,8 +155,6 @@ public:
                 spdlog::info("CXNN");
                 // v index
                 const uint8_t x = (opcode & x_mask) >> 8;
-                // v reg value
-                const uint8_t vx = _memory.v_reg(x);
                 // immediate value
                 const uint8_t nn = opcode & nn_mask;
 
@@ -158,8 +162,8 @@ public:
 
                 _memory.v_reg(x, (random & nn));
 
-                //spdlog::info("vx: 0x{:x}", vx);
-                //spdlog::info("nn: 0x{:x}", nn);
+                //spdlog::info("\tvx: 0x{:x}", vx);
+                //spdlog::info("\tnn: 0x{:x}", nn);
                 _memory.move_pc();
                 break;
             }

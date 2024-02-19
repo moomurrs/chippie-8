@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <spdlog/spdlog.h>
 #include <random>
+#include <raylib.h>
 
 class Memory {
 public:
+
 
     /* get byte value from rom with offset */
     const uint8_t* _get_rom_offset(uint32_t offset){
@@ -45,7 +47,13 @@ public:
 
     // seed random generator on creation
     Memory() : random_generator(time(nullptr)) {
+        InitAudioDevice();
+        beep = LoadSound("../assets/beep.wav");
+    }
 
+    ~Memory(){
+        UnloadSound(beep);
+        CloseAudioDevice();
     }
 
 
@@ -126,6 +134,12 @@ public:
         }
 
         sound_timer_count = new_time;
+    }
+
+    void play_sound(){
+        if(!IsSoundPlaying(beep)){
+            PlaySound(beep);
+        }
     }
 
     void move_pc(){
@@ -251,5 +265,7 @@ private:
     std::array<uint8_t, 16> vregisters{};
 
     std::mt19937 random_generator;
+
+    Sound beep;
 
 };
