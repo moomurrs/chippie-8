@@ -60,7 +60,7 @@ public:
             throw std::runtime_error{err};
             return;
         }
-        spdlog::info("SETTING: old pc: {:d}, new pc: {:d}", program_counter, new_pc);
+        //spdlog::info("SETTING: old pc: {:d}, new pc: {:d}", program_counter, new_pc);
         program_counter = new_pc;
     }
 
@@ -75,7 +75,7 @@ public:
             throw std::runtime_error{err};
             return;
         }
-        spdlog::info("SETTING: old i: {:d}, new i: {:d}", index_register, ireg);
+        //spdlog::info("SETTING: old i: {:d}, new i: {:d}", index_register, ireg);
         index_register = ireg;
     }
 
@@ -89,7 +89,7 @@ public:
             spdlog::critical(err + ": {:d}", new_sp);
             throw std::runtime_error{err};
         }
-        spdlog::info("old sp: {:d}, new sp: {:d}", stack_pointer, new_sp);
+        spdlog::info("\told sp: {:d}, new sp: {:d}", stack_pointer, new_sp);
         stack_pointer = new_sp;
     }
 
@@ -129,12 +129,12 @@ public:
     }
 
     void move_pc(){
-        spdlog::info("increment: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
+        //spdlog::info("increment: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
         program_counter += 2;
     }
 
     void move_back_pc(){
-        spdlog::info("increment back: old pc: {:d}, new pc: {:d}", program_counter, program_counter - 2);
+        //spdlog::info("increment back: old pc: {:d}, new pc: {:d}", program_counter, program_counter - 2);
         program_counter -= 2;
     }
 

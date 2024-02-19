@@ -37,7 +37,6 @@ public:
             throw std::runtime_error{err};
         }
         return IsKeyDown(key_map.at((int)key));
-        //return input.at((int)key);
     }
 
     Keys get_pressed_key(){
@@ -49,12 +48,12 @@ public:
             if(value_raylib == raylib_key){
                 // raylib -> Keys mapping match found
                 key = (Input::Keys)index_key;
-
+                //spdlog::info("func: {:x}", (uint8_t)key);
+                released_key = key;
                 if(key == Keys::NONE){
                     if(key_stage == 1){
                         // key was released
                         key_stage = 2;
-                        released_key = key;
                     }
 
                 }else{

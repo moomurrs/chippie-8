@@ -37,8 +37,8 @@ public:
 
         const uint16_t first = first_half;
         const uint8_t second = second_half;
-        spdlog::info("-----------------------------");
-        spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
+        //spdlog::info("-----------------------------");
+        //spdlog::info("first: 0x{:x}, second: 0x{:x}", first, second);
 
         const uint16_t opcode = instruction_set;
 
@@ -183,7 +183,7 @@ public:
                 const uint16_t current_sp = _memory.sp();
                 const uint16_t current_pc = _memory.pc();
 
-                spdlog::info("stack index: {:d} saving pc: {:d}", current_sp,
+                spdlog::info("\tstack index: {:d} saving pc: {:d}", current_sp,
                              current_pc);
 
                 // push program counter to stack
@@ -194,7 +194,7 @@ public:
                 // will be executed on next cycle, do not move pc
                 _memory.pc(sub_routine);
 
-                spdlog::info("new stack: {:d}, new pc: {:d}", _memory.sp(),
+                spdlog::info("\tnew stack: {:d}, new pc: {:d}", _memory.sp(),
                              sub_routine);
 
                 break;
@@ -215,7 +215,7 @@ public:
                     // pop stack depth
                     const uint16_t current_sp = _memory.sp();
                     const uint16_t return_pc = _memory.stack_layer(current_sp - 1);
-                    spdlog::info("previous stack: {:d}, returning to pc: {:d}",
+                    spdlog::info("\tprevious stack: {:d}, returning to pc: {:d}",
                                  current_sp - 1,
                                  return_pc);
 
@@ -249,8 +249,8 @@ public:
                     _memory.move_pc();
                 }
 
-                spdlog::info("vx: 0x{:x}", vx);
-                spdlog::info("nn: 0x{:x}", nn);
+                spdlog::info("\tvx: 0x{:x}", vx);
+                spdlog::info("\tnn: 0x{:x}", nn);
                 _memory.move_pc();
 
                 break;
@@ -269,11 +269,14 @@ public:
                 const uint8_t nn = opcode & nn_mask;
                 // skip the next instruction if not equal
                 if(vx != nn){
+                    spdlog::info("\tskipped");
                     _memory.move_pc();
+                }else{
+                    spdlog::info("\tnot skipped");
                 }
 
-                spdlog::info("vx: 0x{:x}", vx);
-                spdlog::info("nn: 0x{:x}", nn);
+                spdlog::info("\tv{:x}: 0x{:x}", x, vx);
+                spdlog::info("\tnn: 0x{:x}", nn);
                 _memory.move_pc();
 
                 break;
@@ -298,8 +301,8 @@ public:
                     _memory.move_pc();
                 }
 
-                spdlog::info("vx: 0x{:x}", vx);
-                spdlog::info("vy: 0x{:x}", vy);
+                spdlog::info("\tvx: 0x{:x}", vx);
+                spdlog::info("\tvy: 0x{:x}", vy);
                 _memory.move_pc();
 
                 break;
@@ -311,9 +314,10 @@ public:
                 const uint8_t x = (opcode & x_mask) >> 8;
                 const uint8_t nn = opcode & nn_mask;
                 spdlog::info("6XNN");
-                spdlog::info("x: 0x{:x}", x);
-                spdlog::info("nn: 0x{:x}", nn);
+                spdlog::info("\tx: 0x{:x}", x);
+                spdlog::info("\tnn: 0x{:x}", nn);
                 _memory.v_reg(x, nn);
+                spdlog::info("\tv{:x} set to {:d}", x, nn);
                 _memory.move_pc();
                 break;
             }
@@ -324,11 +328,11 @@ public:
                 const uint8_t x = (opcode & x_mask) >> 8;
                 const uint8_t nn = opcode & nn_mask;
                 spdlog::info("7XNN");
-                spdlog::info("x: 0x{:x}", x);
-                spdlog::info("nn: 0x{:x}", nn);
+                spdlog::info("\tx: 0x{:x}", x);
+                spdlog::info("\tnn: 0x{:x}", nn);
 
                 const uint16_t vx = _memory.v_reg(x);
-                spdlog::info("current reg val: 0x{:x}", vx);
+                spdlog::info("\tcurrent reg val: 0x{:x}", vx);
                 _memory.v_reg(x, (vx + nn) % 256);
                 _memory.move_pc();
                 break;
@@ -375,9 +379,14 @@ public:
                     }
 
                 }else if(derivative == 0x5){
-                    spdlog::info("0x8XY version 5");
+                    spdlog::info("0x8XY version 5 (subtract)");
                     // only keep lower byte, if underflowed
+
+                    const uint8_t result = (uint8_t) (vx - vy);
                     _memory.v_reg(x, (uint8_t)(vx - vy));
+
+                    spdlog::info("\tsubtract: {:d} - {:d} = {:d}", vy, vy, _memory.v_reg(x));
+
                     if(vx - vy < 0){
                         _memory.v_reg(0xF, 0);
                     }else{
@@ -457,11 +466,11 @@ public:
                     _memory.move_pc();
                 }
 
-                spdlog::info("x: 0x{:x}", x);
-                spdlog::info("y: 0x{:x}", y);
+                spdlog::info("\tx: 0x{:x}", x);
+                spdlog::info("\ty: 0x{:x}", y);
 
-                spdlog::info("vx: 0x{:x}", vx);
-                spdlog::info("vy: 0x{:x}", vy);
+                spdlog::info("\tvx: 0x{:x}", vx);
+                spdlog::info("\tvy: 0x{:x}", vy);
                 _memory.move_pc();
                 break;
             }
@@ -475,7 +484,7 @@ public:
 
             if(nn == 0x9E){
                 spdlog::info("0xEX 9E");
-                spdlog::info("key press check: {:x}", vx);
+                spdlog::info("\tkey press check: {:x}", vx);
 
                 bool key_status = _input.is_pressing((Input::Keys)vx);
 
@@ -483,9 +492,9 @@ public:
                 if(key_status){
                     // pressed, skip next instruction
                     _memory.move_pc();
-                    spdlog::info("pressed");
+                    spdlog::info("\tpressed");
                 }else{
-                    spdlog::info("not pressed");
+                    spdlog::info("\tnot pressed");
 
                 }
 
@@ -523,28 +532,27 @@ public:
                     for(size_t i = 0; i <= x; i++){
                         const uint8_t& location = _memory.ram(start + i);
                         _memory.v_reg(i, location);
-                        _memory.i_reg(location + x);
+                        //_memory.i_reg(start + i);
                     }
+                    // TODO: make this quark optional
+                    _memory.i_reg(start + 1 + x);
 
 
                 }else if(nn == 0x55){
                     spdlog::info("0xFX 55");
                     // copy register values [0, x] to ram contiguous, starting at i
-                    //const uint16_t start_location = _memory.i_reg();
-                    for(size_t i = 0; i <= x; i++){
 
+                    for(size_t i = 0; i <= x; i++){
                         uint8_t& location = _memory.ram(start + i);
                         location = _memory.v_reg(i);
-                        _memory.i_reg(location);
-
-
-                        //uint8_t& item = _memory.ram(start_location + i);
-                        //item = _memory.v_reg(i);
-
+                        //_memory.i_reg(start + i);
                     }
-                    //_memory.i_reg(start_location + x);
+                    // TODO: make this quark optional
+                    _memory.i_reg(start + 1 + x);
+
 
                 }else if(nn == 0x33){
+                    // binary to decimal conversion
                     spdlog::info("0xFX 33");
                     const uint8_t vx = _memory.v_reg(x);
 
@@ -558,6 +566,7 @@ public:
                         location = digit[i];
                     }
 
+
                 }else if(nn == 0x29){
                     // load font
                     spdlog::info("0xFX 29");
@@ -565,10 +574,10 @@ public:
                     const uint8_t font_offset = _memory.v_reg(x);
                     const uint16_t font_location = 0x050 + (font_offset * 5);
 
-                    spdlog::critical("index: {:d}, font: {:d}, timer: {:d}",
+                    /*spdlog::critical("index: {:d}, font: {:d}, timer: {:d}",
                                      font_offset,
                                      font_location,
-                                     _memory.delay_timer());
+                                     _memory.delay_timer());*/
 
                     _memory.i_reg(font_location);
 
@@ -599,12 +608,10 @@ public:
 
                     // vx reg value
                     const uint8_t vx = _memory.v_reg(x);
-
                     _memory.sound_timer(vx);
 
-
                 }else if(nn == 0x0A){
-                    spdlog::info("0xFX 0A");
+                    //spdlog::info("0xFX 0A");
 
                     Input::Keys pressed_key = _input.get_pressed_key();
 
@@ -613,7 +620,9 @@ public:
                         _memory.move_back_pc();
                     }else{
                         // input released, assign to vx
-                        _memory.v_reg(x, (uint8_t)_input.released_key_value());
+                        Input::Keys released_key = _input.released_key_value();
+                        spdlog::info("\treleased key: {:x}", (uint8_t) released_key);
+                        _memory.v_reg(x, (uint8_t) released_key);
                         _input.reset_key_stage();
                     }
 
@@ -641,7 +650,7 @@ public:
         std::ifstream rom{file_path, std::ios::binary};
         if(!rom.is_open()){
             // error
-            std::string err{"ERROR: failed to open file "};
+            std::string err{"\tERROR: failed to open file "};
             spdlog::error(err);
             throw std::runtime_error{err};
         }
@@ -668,9 +677,6 @@ public:
         return _input;
     }
 
-    void store_instruction(uint16_t instruction){
-        instruction_set = instruction;
-    }
 
     uint16_t get_instruction(){
         return instruction_set;
@@ -696,7 +702,6 @@ public:
         const uint8_t command_nibble = (instruction_set & 0xF000) >> 12;
         return instruction_set == 0x00E0 || command_nibble == 0xD;
     }
-
 
 private:
     Display _display{1.0, BLACK, RED}; // graphics helpers
