@@ -40,6 +40,8 @@ public:
     }
 
     Keys get_pressed_key(){
+        // consumes pressed key from queue
+        // subsequent calls will be blank (even if pressing)
         int raylib_key = GetKeyPressed();
 
         Keys key = Keys::NONE;
@@ -48,21 +50,28 @@ public:
             if(value_raylib == raylib_key){
                 // raylib -> Keys mapping match found
                 key = (Input::Keys)index_key;
-                //spdlog::info("func: {:x}", (uint8_t)key);
-                released_key = key;
-                if(key == Keys::NONE){
-                    if(key_stage == 1){
-                        // key was released
-                        key_stage = 2;
-                    }
 
+                if(key == Keys::NONE){
+                    // key is either not pressed at all, or pressed but not released
+                    if(key_stage == 1){
+                        // key is held
+                        if(IsKeyUp(key_map.at((int)released_key))){
+                            // key is released, move to last stage
+                            key_stage = 2;
+                        }
+                    }
                 }else{
                     // key is pressed
                     key_stage = 1;
+                    released_key = key;
                 }
             }
         }
         return key;
+    }
+
+    int get_key_stage(){
+        return key_stage;
     }
 
     Keys released_key_value(){
@@ -79,6 +88,7 @@ public:
 
     void reset_key_stage(){
         key_stage = 0;
+        released_key = Keys::NONE;
     }
 
 private:

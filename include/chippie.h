@@ -615,15 +615,18 @@ public:
 
                     Input::Keys pressed_key = _input.get_pressed_key();
 
-                    if(_input.is_not_pressed() || _input.is_released()){
+                    if(_input.is_not_pressed() ||  !_input.is_released()){
                         // no input or not released this cycle, repeat instruction
+                        //spdlog::info("\tnot ready to increment");
                         _memory.move_back_pc();
                     }else{
                         // input released, assign to vx
+
                         Input::Keys released_key = _input.released_key_value();
-                        spdlog::info("\treleased key: {:x}", (uint8_t) released_key);
+                        //spdlog::info("\treleased key: {:x}", (uint8_t) released_key);
                         _memory.v_reg(x, (uint8_t) released_key);
                         _input.reset_key_stage();
+                        //spdlog::info("\tpressed + released");
                     }
 
                 }else{

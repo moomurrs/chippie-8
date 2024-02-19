@@ -129,12 +129,12 @@ public:
     }
 
     void move_pc(){
-        //spdlog::info("increment: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
+        //spdlog::info("\tincrement: old pc: {:d}, new pc: {:d}", program_counter, program_counter + 2);
         program_counter += 2;
     }
 
     void move_back_pc(){
-        //spdlog::info("increment back: old pc: {:d}, new pc: {:d}", program_counter, program_counter - 2);
+        //spdlog::info("\tincrement back: old pc: {:d}, new pc: {:d}", program_counter, program_counter - 2);
         program_counter -= 2;
     }
 
