@@ -16,8 +16,8 @@ public:
         const uint16_t pc = _memory.pc();
         first_half = *(_memory.ram_offset(pc));
         second_half = *(_memory.ram_offset(pc + 1));
-        //spdlog::info("-----------------------------");
-        //spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
+        spdlog::info("-----------------------------");
+        spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
         instruction_set = (first_half << 8) | second_half;
 
         if(GetTime() - start_time >= delay_tick_delta){
@@ -63,7 +63,7 @@ public:
         switch(command_nibble){
         case 0xD:
             {
-                // render display
+                // manipulate pixel buffer (which gets drawn from)
                 spdlog::info("DXYN");
                 const uint16_t x_nibble = (opcode & x_mask) >> 8;
                 const uint16_t y_nibble = (opcode & y_mask) >> 4;
@@ -99,11 +99,9 @@ public:
                         const bool pixel_request = sprite & bit_mask;
                         const bool pixel_status = _display.pixels()[y_pos_corner + i][x_pos_corner + j];
 
-                        //spdlog::info("requested: {:d}, status: {:d}", pixel_request, pixel_status);
-                        // pixel ON requested
-                        if(pixel_request){
-                            // display pixel current on
-                            if(pixel_status){
+                        // modify pixel buffer
+                        if(pixel_request){ // pixel ON requested
+                            if(pixel_status){ // display pixel current on
                                 // on requested, screen pixel already on - do nothing, set vf flag
                                 _display.pixels()[y_pos_corner + i][x_pos_corner + j] = false;
                                 _memory.v_reg(0xF, 1);
@@ -111,14 +109,13 @@ public:
                                 _display.pixels()[y_pos_corner + i][x_pos_corner + j] = true;
                             }
                         }
-
+                        // read next sprite bit
                         bit_mask >>= 1;
                     }
                     // reset bitmask
                     bit_mask = 0b10000000;
                 }
 
-                _display.render();
                 _memory.move_pc();
                 break;
             }
@@ -171,6 +168,7 @@ public:
         case 0x1:
             {
                 // jump to immediate value nnn
+                spdlog::info("1NNN (jump)");
                 const uint16_t val = opcode & nnn_mask;
                 _memory.pc(val);
                 //spdlog::info("1NNN: to location {:x}", val);
@@ -181,7 +179,7 @@ public:
         case 0x2:
             {
                 // run subroutine at nnn, cache current pc on stack
-                spdlog::info("2NNN");
+                spdlog::info("2NNN (subroutine)");
                 const uint16_t  sub_routine = opcode & nnn_mask;
 
                 const uint16_t current_sp = _memory.sp();
@@ -671,6 +669,7 @@ public:
         rom.close();
     }
 
+    /*
     Display& display(){
         return _display;
     }
@@ -682,7 +681,7 @@ public:
 
     Input& input(){
         return _input;
-    }
+        }*/
 
 
     uint16_t get_instruction(){
@@ -708,6 +707,10 @@ public:
     bool is_draw_instruction(){
         const uint8_t command_nibble = (instruction_set & 0xF000) >> 12;
         return instruction_set == 0x00E0 || command_nibble == 0xD;
+    }
+
+    void render_display(){
+        _display.render();
     }
 
 private:

@@ -31,9 +31,10 @@ public:
         }
     }
 
+    // render screen pixels, according to pixel buffer data
     void render(){
         //if(!timer.is_timer_done()) return
-        ClearBackground(DARKGRAY);
+        //ClearBackground(DARKGRAY);
         for(std::size_t i = 0; i < 32; i++){
             for(std::size_t j = 0; j < 64; j++){
                 if(pixel_buffer[i][j]){
@@ -65,15 +66,6 @@ public:
         }
 
         Color color = is_on ? pixel_color : background_color;
-
-        /*
-        int temp_x = 63;
-        int temp_y = 31;
-
-        DrawRectangle(width_offset + (pixel_width * temp_x) + (padding * temp_x),
-                      height_offset + (pixel_height * temp_y) + (padding * temp_y),
-                      pixel_width, pixel_height,
-                      GREEN);*/
 
         //spdlog::info("rendering pixel: ({:d},{:d}), color: {:d}", x, y, a);
 
