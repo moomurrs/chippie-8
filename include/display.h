@@ -16,7 +16,7 @@ public:
         {
             // draw the blank pixels on startup
             spdlog::info("display: initializing...");
-            timer.start_timer();
+
         }
 
     // turn on all pixels
@@ -110,7 +110,5 @@ private:
 
     const Color background_color;
     const Color pixel_color;
-
-    Timer timer{};
 
 };

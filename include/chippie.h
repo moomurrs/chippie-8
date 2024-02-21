@@ -13,23 +13,28 @@ public:
     }
 
     void tick(){
-        if(GetTime() - start_time >= delay_tick_delta){
+        // halt until cycle timer is done
+        while(!cycle_timer.is_timer_done());
+        cycle_timer.reset_timer();
+        // render screen
+        _display.render();
+        // update delay + sound timers at 60Hz
+        if(timer_60Hz.is_timer_done()){
             uint8_t previous_delay = _memory.delay_timer();
             uint8_t previous_sound = _memory.sound_timer();
-            //spdlog::critical("1 tick!");
+            // decrement delay on each tick
             if(previous_delay > 0){
-                //spdlog::critical("new time: {:d}, old time: {:d}", old_time - 1, old_time);
                 _memory.delay_timer(previous_delay - 1);
             }
+            // decrement sound on each tick
             if(previous_sound > 0){
-                //spdlog::critical("new sound: {:d}, old sound: {:d}", previous_sound - 1, previous_sound);
                 _memory.sound_timer(previous_sound - 1);
                 // play sound
                 _memory.play_sound();
             }
 
             // reset timer
-            start_time = GetTime();
+            timer_60Hz.reset_timer();
         }
     }
 
@@ -711,9 +716,6 @@ public:
         return instruction_set == 0x00E0 || command_nibble == 0xD;
     }
 
-    void render_display(){
-        _display.render();
-    }
 
 private:
     Display _display{1.0, BLACK, RED}; // graphics helpers
@@ -722,6 +724,7 @@ private:
     uint16_t instruction_set;
     uint8_t first_half;
     uint8_t second_half;
-    double start_time;
-    constexpr static double delay_tick_delta = 1.0 / 60.0;
+    Timer timer_60Hz{60.0};
+    Timer cycle_timer{500.0};
+
 };
