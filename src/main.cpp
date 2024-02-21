@@ -44,7 +44,6 @@ int main() {
 
     while (!WindowShouldClose()){
 
-
         exitWindow = WindowShouldClose();
 
         if (fileDialogState.SelectFilePressed)
@@ -70,7 +69,6 @@ int main() {
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
         if (fileDialogState.windowActive) GuiLock();
-
         if (GuiButton((Rectangle){ 20, 20, 140, 30 }, GuiIconText(ICON_FILE_OPEN, "Open ROM"))) fileDialogState.windowActive = true;
 
         GuiUnlock();
@@ -79,8 +77,9 @@ int main() {
         //--------------------------------------------------------------------------------
         GuiWindowFileDialog(&fileDialogState);
         // load next instruction into memory, update clocks
-        chippie.fetch_and_update();
-
+        chippie.fetch();
+        chippie.decode_execute_opcode();
+        chippie.tick();
         //spdlog::info("next instruction: {:x}", chippie.get_instruction());
         /*
         if(chippie.get_second_half() != 0x0A){
@@ -88,7 +87,6 @@ int main() {
             }*/
 
         // execute instruction
-        chippie.decode_execute_opcode();
 
         EndDrawing();
 

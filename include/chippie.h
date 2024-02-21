@@ -12,14 +12,7 @@ public:
         spdlog::info("chip8: initializing...");
     }
 
-    void fetch_and_update(){
-        const uint16_t pc = _memory.pc();
-        first_half = *(_memory.ram_offset(pc));
-        second_half = *(_memory.ram_offset(pc + 1));
-        spdlog::info("-----------------------------");
-        spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
-        instruction_set = (first_half << 8) | second_half;
-
+    void tick(){
         if(GetTime() - start_time >= delay_tick_delta){
             uint8_t previous_delay = _memory.delay_timer();
             uint8_t previous_sound = _memory.sound_timer();
@@ -38,6 +31,15 @@ public:
             // reset timer
             start_time = GetTime();
         }
+    }
+
+    void fetch(){
+        const uint16_t pc = _memory.pc();
+        first_half = *(_memory.ram_offset(pc));
+        second_half = *(_memory.ram_offset(pc + 1));
+        spdlog::info("-----------------------------");
+        spdlog::info("first: 0x{:x}, second: 0x{:x}", first_half, second_half);
+        instruction_set = (first_half << 8) | second_half;
 
     }
 
