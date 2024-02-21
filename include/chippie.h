@@ -656,6 +656,8 @@ public:
 
     void load_rom_to_ram(const char* file_path){
         spdlog::info("Loading into ram from rom.");
+        // clear pixel buffer
+        _display.clear();
         // zero out registers for fresh start
         _memory.erase_memory(false); // false since it'll be overwritten anyway
         // load rom in binary
