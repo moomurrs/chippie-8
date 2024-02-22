@@ -23,7 +23,9 @@ int main() {
     std::string file_qualified_path{};
 
     Chippie chippie{};
-    chippie.load_rom_to_ram("../test/Pong (1 player).ch8");
+    //chippie.load_rom_to_ram("../test/Pong (1 player).ch8");
+    chippie.load_rom_to_ram("../test/6-keypad.ch8");
+    chippie.memory().ram(0x1FF) = 1; // force input
 
     while (!WindowShouldClose()){
 

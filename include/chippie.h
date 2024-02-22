@@ -687,7 +687,7 @@ public:
         rom.close();
     }
 
-    /*
+
     Display& display(){
         return _display;
     }
@@ -699,7 +699,7 @@ public:
 
     Input& input(){
         return _input;
-        }*/
+        }
 
 
     uint16_t get_instruction(){

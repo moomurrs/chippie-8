@@ -6,7 +6,6 @@
 
 class Input{
 public:
-
     // key enum (must remap to raylib)
     enum class Keys{
         ZERO,
@@ -93,23 +92,12 @@ public:
 
 private:
     // remap 0-15 to raylib key values
+    // remap the second value for each entry to remap as needed
     std::map<int, int> key_map= {
-        {0, KEY_ZERO},
-        {1, KEY_ONE},
-        {2, KEY_TWO},
-        {3, KEY_THREE},
-        {4, KEY_FOUR},
-        {5, KEY_FIVE},
-        {6, KEY_SIX},
-        {7, KEY_SEVEN},
-        {8, KEY_EIGHT},
-        {9, KEY_NINE},
-        {10, KEY_A},
-        {11, KEY_B},
-        {12, KEY_C},
-        {13, KEY_D},
-        {14, KEY_E},
-        {15, KEY_F},
+        {(int)Keys::ONE, KEY_ONE}, {(int)Keys::TWO, KEY_TWO}, {(int)Keys::THREE, KEY_THREE}, {(int)Keys::C, KEY_FOUR},
+        {(int)Keys::FOUR, KEY_Q}, {(int)Keys::FIVE, KEY_W}, {(int)Keys::SIX, KEY_E}, {(int)Keys::D, KEY_R},
+        {(int)Keys::SEVEN, KEY_A}, {(int)Keys::EIGHT, KEY_S}, {(int)Keys::NINE, KEY_D}, {(int)Keys::E, KEY_F},
+        {(int)Keys::A, KEY_Z}, {(int)Keys::ZERO, KEY_X}, {(int)Keys::B, KEY_C}, {(int)Keys::F, KEY_V},
         {16, KEY_NULL} // no press
     };
 
