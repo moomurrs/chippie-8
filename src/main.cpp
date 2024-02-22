@@ -1,12 +1,12 @@
 #include <raylib.h>
 #define RAYGUI_IMPLEMENTATION
 #include "../include/raygui.h"
-#include <iostream>
-#include "../include/chippie.h"
-
 #undef RAYGUI_IMPLEMENTATION            // Avoid including raygui implementation again
 #define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
 #include "../include/gui_window_file_dialog.h"
+#include <iostream>
+#include "../include/chippie.h"
+#include <string>
 
 constexpr auto SCREEN_WIDTH  = 800;
 constexpr auto SCREEN_HEIGHT = 500;
@@ -19,7 +19,8 @@ int main() {
 
     bool exitWindow = false;
 
-    char fileNameToLoad[512] = { 0 };
+    // name and fully-qualified path of rom file
+    std::string file_qualified_path{};
 
     Chippie chippie{};
     chippie.load_rom_to_ram("../test/Pong (1 player).ch8");
@@ -28,13 +29,13 @@ int main() {
 
         exitWindow = WindowShouldClose();
 
-        if (fileDialogState.SelectFilePressed)
-        {
+        if (fileDialogState.SelectFilePressed){
             // Load ROM file (if supported extension)
-            if (IsFileExtension(fileDialogState.fileNameText, ".ch8"))
-            {
-                strcpy(fileNameToLoad, TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText));
-                chippie.load_rom_to_ram(fileNameToLoad);
+            if (IsFileExtension(fileDialogState.fileNameText, ".ch8")){
+                // grab rom's fully-qualified path + name, using the platform-specific path separator
+                file_qualified_path = TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText);
+                // load rom into ram
+                chippie.load_rom_to_ram(file_qualified_path.c_str());
             }
             fileDialogState.SelectFilePressed = false;
         }
@@ -50,7 +51,7 @@ int main() {
         chippie.tick();
 
         //chippie.render_display();
-        DrawText(fileNameToLoad, 208, GetScreenHeight() - 20, 10, GRAY);
+        DrawText(file_qualified_path.c_str(), 208, GetScreenHeight() - 20, 10, GRAY);
 
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
