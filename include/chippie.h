@@ -596,8 +596,17 @@ public:
                     const uint8_t vx = _memory.v_reg(x);
                     const uint16_t i = _memory.i_reg();
 
+                    const uint16_t sum = vx + i;
+
+                    // WARNING: original COSMAC Chip didn't do this
+                    // but some chip8 games rely on this
+                    if(sum > 0xFFF){
+                        // outside the normal addressing range
+                        _memory.v_reg(0xF, 1);
+                    }
+
                     // add vx to current it
-                    _memory.i_reg(i + vx);
+                    _memory.i_reg(sum);
 
                 }else if(nn == 0x07){
                     // set vx to delay timer value
