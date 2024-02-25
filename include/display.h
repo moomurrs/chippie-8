@@ -94,6 +94,16 @@ public:
         return pixel_buffer;
     }
 
+    // get bottom of pixel of screen
+    int bottom_pixel(int offset){
+        return height_offset + (pixel_height * 32) + (padding * 32) + offset;
+    }
+
+    // get left most pixel side of screen
+    int left_pixel(int offset){
+        return offset;
+    }
+
 
 private:
     float magnifier = 1.0f; // scaling

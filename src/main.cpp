@@ -8,12 +8,11 @@
 #include "../include/chippie.h"
 #include <string>
 
-constexpr auto SCREEN_WIDTH  = 800;
+constexpr auto SCREEN_WIDTH  = 850;
 constexpr auto SCREEN_HEIGHT = 500;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
-    //SetTargetFPS(600);
 
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
@@ -25,7 +24,9 @@ int main() {
     Chippie chippie{};
     //chippie.load_rom_to_ram("../test/Pong (1 player).ch8");
     chippie.load_rom_to_ram("../test/6-keypad.ch8");
-    chippie.memory().ram(0x1FF) = 1; // force input
+    //chippie.memory().ram(0x1FF) = 1; // force input
+
+    int resume_program = 0;
 
     while (!WindowShouldClose()){
 
@@ -47,10 +48,18 @@ int main() {
 
         // load next instruction into memory
         chippie.fetch();
-        // execute instruction
-        chippie.decode_execute_opcode();
-        //update clocks
-        chippie.tick();
+
+        // run/skip bases on debug toggle
+        GuiToggleSlider((Rectangle){ (float)chippie.display().left_pixel(20), (float)chippie.display().bottom_pixel(10), 140, 30 }, "RUN;HALT", &resume_program);
+
+        // execute opcode if toggle slider is ON
+        if(!resume_program){
+            // execute instruction
+            chippie.decode_execute_opcode();
+            //update clocks
+            chippie.tick();
+        }
+
 
         //chippie.render_display();
         DrawText(file_qualified_path.c_str(), 208, GetScreenHeight() - 20, 10, GRAY);
