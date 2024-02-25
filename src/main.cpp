@@ -22,11 +22,16 @@ int main() {
     std::string file_qualified_path{};
 
     Chippie chippie{};
-    //chippie.load_rom_to_ram("../test/Pong (1 player).ch8");
+    //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
     chippie.load_rom_to_ram("../test/6-keypad.ch8");
     //chippie.memory().ram(0x1FF) = 1; // force input
 
-    int resume_program = 0;
+    int halt_program = 0;
+    bool step_forward = false;
+    int step_button_width = 90;
+
+    std::string draw_status = "";
+    std::string halting = "";
 
     while (!WindowShouldClose()){
 
@@ -44,22 +49,68 @@ int main() {
         }
 
         BeginDrawing();
-         ClearBackground(DARKGRAY);
+        //ClearBackground(DARKGRAY);
 
         // load next instruction into memory
         chippie.fetch();
 
-        // run/skip bases on debug toggle
-        GuiToggleSlider((Rectangle){ (float)chippie.display().left_pixel(20), (float)chippie.display().bottom_pixel(10), 140, 30 }, "RUN;HALT", &resume_program);
+        DrawText(TextFormat("next: %x", chippie.get_first_half()), 500, 410, 30, ORANGE);
+
+        GuiSetState(STATE_NORMAL); // always draw toggle
+        // get current state of toggle
+        GuiToggleSlider((Rectangle){
+                (float)chippie.display().left_pixel(20),
+                (float)chippie.display().bottom_pixel(10),
+                90, 30 },
+            "RUN;HALT", &halt_program);
 
         // execute opcode if toggle slider is ON
-        if(!resume_program){
+        if(!halt_program){
+            // resume program normally
+            // draw disable step button
+            GuiSetState(STATE_DISABLED);
+            GuiButton((Rectangle){
+                    (float)chippie.display().left_pixel(140),
+                    (float)chippie.display().bottom_pixel(10),
+                    (float)step_button_width, 30 },
+                "Step Forward");
             // execute instruction
             chippie.decode_execute_opcode();
             //update clocks
             chippie.tick();
+            halting = "running";
+        }else{
+            halting = "halting";
+            ClearBackground(DARKGRAY); // clear screen to update texts
+
+            // program halted
+            // enable step-forward
+            GuiSetState(STATE_NORMAL);
+            // get current state of button
+            step_forward = GuiButton((Rectangle){
+                    (float)chippie.display().left_pixel(140),
+                    (float)chippie.display().bottom_pixel(10),
+                    (float)step_button_width, 30 },
+                "Step Forward");
+
+            if(step_forward){
+                if(chippie.is_draw_instruction()){
+                    //spdlog::critical("drawing...");
+                    draw_status = "drawing...";
+                }else{
+                    draw_status = "----";
+                }
+                // execute instruction
+                chippie.decode_execute_opcode();
+                //update clocks
+                chippie.tick();
+            }
+            // force render pixel buffer (so it persists on pausing)
+            chippie.display().render();
         }
 
+        DrawText(TextFormat("draw status: %s", draw_status.c_str()), 500, 350, 30, BLUE);
+        DrawText(TextFormat("halt status: %s", halting.c_str()), 500, 390, 30, GREEN);
 
         //chippie.render_display();
         DrawText(file_qualified_path.c_str(), 208, GetScreenHeight() - 20, 10, GRAY);

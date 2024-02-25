@@ -33,8 +33,7 @@ public:
 
     // render screen pixels, according to pixel buffer data
     void render(){
-        //if(!timer.is_timer_done()) return
-        //ClearBackground(DARKGRAY);
+        ClearBackground(DARKGRAY);
         for(std::size_t i = 0; i < 32; i++){
             for(std::size_t j = 0; j < 64; j++){
                 if(pixel_buffer[i][j]){
@@ -50,7 +49,6 @@ public:
                 }
             }
         }
-        //timer.start_timer();
     }
 
     void render_pixel(int x, int y, bool is_on){

@@ -16,8 +16,7 @@ public:
         // halt until cycle timer is done
         while(!cycle_timer.is_timer_done());
         cycle_timer.reset_timer();
-        // render screen
-        _display.render();
+
         // update delay + sound timers at 60Hz
         if(timer_60Hz.is_timer_done()){
             uint8_t previous_delay = _memory.delay_timer();
@@ -122,7 +121,8 @@ public:
                     // reset bitmask
                     bit_mask = 0b10000000;
                 }
-
+                // render screen
+                _display.render();
                 _memory.move_pc();
                 break;
             }
@@ -699,24 +699,18 @@ public:
 
     Input& input(){
         return _input;
-        }
+    }
 
 
     uint16_t get_instruction(){
         return instruction_set;
     }
 
-    void store_first_half(uint8_t first_byte){
-        first_half = first_byte;
-    }
 
     uint8_t get_first_half(){
         return first_half;
     }
 
-    void store_second_half(uint8_t second_byte){
-        second_half = second_byte;
-    }
 
     uint8_t get_second_half(){
         return second_half;
@@ -736,6 +730,6 @@ private:
     uint8_t first_half;
     uint8_t second_half;
     Timer timer_60Hz{60.0};
-    Timer cycle_timer{500.0};
+    Timer cycle_timer{100.0};
 
 };
