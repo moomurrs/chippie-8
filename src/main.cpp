@@ -9,7 +9,7 @@
 #include <string>
 
 constexpr auto SCREEN_WIDTH  = 850;
-constexpr auto SCREEN_HEIGHT = 500;
+constexpr auto SCREEN_HEIGHT = 550;
 
 
 int main() {
@@ -30,8 +30,15 @@ int main() {
 
     int op_text_x = step_x + 100;
     int op_text_y = step_y;
-    int op_text_size = 24;
+    int op_text_size = 25;
 
+    int status_text_x = toggle_x;
+    int status_text_y = SCREEN_HEIGHT - 100;
+    int status_text_size = 30;
+
+    int rom_text_x = status_text_x;
+    int rom_text_y = status_text_y + 50;
+    int rom_text_size = 25;
 
 
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
@@ -48,6 +55,9 @@ int main() {
     int halt_program = 0;
     bool step_forward = false;
 
+    std::string status = "RUNNING";
+    std::string rom_text = "";
+
     while (!WindowShouldClose()){
 
         exitWindow = WindowShouldClose();
@@ -59,6 +69,7 @@ int main() {
                 file_qualified_path = TextFormat("%s" PATH_SEPERATOR "%s", fileDialogState.dirPathText, fileDialogState.fileNameText);
                 // load rom into ram
                 chippie.load_rom_to_ram(file_qualified_path.c_str());
+                rom_text = fileDialogState.fileNameText;
             }
             fileDialogState.SelectFilePressed = false;
         }
@@ -68,7 +79,6 @@ int main() {
 
         // load next instruction into memory
         chippie.fetch();
-
 
         GuiSetState(STATE_NORMAL); // always draw toggle
         // get current state of toggle
@@ -93,6 +103,8 @@ int main() {
             //update clocks
             chippie.tick();
             DrawText("next opcode: 0x----", op_text_x, op_text_y, op_text_size, GRAY);
+            status = "RUNNING";
+            //DrawText(TextFormat("Status : %s", status.c_str()), status_text_x, status_text_y, status_text_size, GREEN);
 
         }else{
             // program halted
@@ -108,22 +120,20 @@ int main() {
             DrawText(TextFormat("next opcode: 0x%04x", chippie.get_instruction()), op_text_x, op_text_y, op_text_size, ORANGE);
 
             if(step_forward){
-                if(chippie.is_draw_instruction()){
-                    //spdlog::critical("drawing...");
-
-                }else{
-
-                }
                 // execute instruction
                 chippie.decode_execute_opcode();
                 //update clocks
                 chippie.tick();
             }
+            status = "HALTED";
+            DrawText(TextFormat("Status : %s", status.c_str()), status_text_x, status_text_y, status_text_size, GREEN);
         }
+        DrawText(TextFormat("Status : %s", status.c_str()), status_text_x, status_text_y, status_text_size, GREEN);
+        DrawText(TextFormat("ROM : %s", rom_text.c_str()), rom_text_x, rom_text_y, rom_text_size, SKYBLUE);
 
         chippie.display().render();
 
-        DrawText(file_qualified_path.c_str(), 450, GetScreenHeight() - 20, 10, RED);
+        //DrawText(file_qualified_path.c_str(), 450, GetScreenHeight() - 20, 10, RED);
 
         GuiSetState(STATE_NORMAL); // always draw load button
         // raygui: controls drawing
