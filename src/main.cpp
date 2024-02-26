@@ -13,6 +13,7 @@ constexpr auto SCREEN_HEIGHT = 500;
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
+    spdlog::set_level(spdlog::level::critical);
 
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
@@ -30,9 +31,6 @@ int main() {
     bool step_forward = false;
     int step_button_width = 90;
 
-    std::string draw_status = "";
-    std::string halting = "";
-
     while (!WindowShouldClose()){
 
         exitWindow = WindowShouldClose();
@@ -49,7 +47,7 @@ int main() {
         }
 
         BeginDrawing();
-        //ClearBackground(DARKGRAY);
+        ClearBackground(DARKGRAY);
 
         // load next instruction into memory
         chippie.fetch();
@@ -78,11 +76,8 @@ int main() {
             chippie.decode_execute_opcode();
             //update clocks
             chippie.tick();
-            halting = "running";
-        }else{
-            halting = "halting";
-            ClearBackground(DARKGRAY); // clear screen to update texts
 
+        }else{
             // program halted
             // enable step-forward
             GuiSetState(STATE_NORMAL);
@@ -96,25 +91,22 @@ int main() {
             if(step_forward){
                 if(chippie.is_draw_instruction()){
                     //spdlog::critical("drawing...");
-                    draw_status = "drawing...";
+
                 }else{
-                    draw_status = "----";
+
                 }
                 // execute instruction
                 chippie.decode_execute_opcode();
                 //update clocks
                 chippie.tick();
             }
-            // force render pixel buffer (so it persists on pausing)
-            chippie.display().render();
         }
 
-        DrawText(TextFormat("draw status: %s", draw_status.c_str()), 500, 350, 30, BLUE);
-        DrawText(TextFormat("halt status: %s", halting.c_str()), 500, 390, 30, GREEN);
+        chippie.display().render();
 
-        //chippie.render_display();
         DrawText(file_qualified_path.c_str(), 208, GetScreenHeight() - 20, 10, GRAY);
 
+        GuiSetState(STATE_NORMAL); // always draw load button
         // raygui: controls drawing
         //----------------------------------------------------------------------------------
         if (fileDialogState.windowActive) GuiLock();

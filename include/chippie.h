@@ -121,8 +121,7 @@ public:
                     // reset bitmask
                     bit_mask = 0b10000000;
                 }
-                // render screen
-                _display.render();
+
                 _memory.move_pc();
                 break;
             }

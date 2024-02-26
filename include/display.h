@@ -33,7 +33,7 @@ public:
 
     // render screen pixels, according to pixel buffer data
     void render(){
-        ClearBackground(DARKGRAY);
+        //ClearBackground(DARKGRAY);
         for(std::size_t i = 0; i < 32; i++){
             for(std::size_t j = 0; j < 64; j++){
                 if(pixel_buffer[i][j]){
