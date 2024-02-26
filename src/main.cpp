@@ -11,9 +11,28 @@
 constexpr auto SCREEN_WIDTH  = 850;
 constexpr auto SCREEN_HEIGHT = 500;
 
+
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
     spdlog::set_level(spdlog::level::critical);
+
+    Chippie chippie{};
+    chippie.load_rom_to_ram("../test/6-keypad.ch8");
+
+
+    int toggle_x = chippie.display().left_pixel(20);
+    int toggle_y = chippie.display().bottom_pixel(10);
+    int toggle_width = 90;
+
+    int step_x = chippie.display().left_pixel(toggle_x + 120);
+    int step_y = chippie.display().bottom_pixel(10);
+    int step_width = 90;
+
+    int op_text_x = step_x + 100;
+    int op_text_y = step_y;
+    int op_text_size = 24;
+
+
 
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
@@ -22,14 +41,12 @@ int main() {
     // name and fully-qualified path of rom file
     std::string file_qualified_path{};
 
-    Chippie chippie{};
     //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
-    chippie.load_rom_to_ram("../test/6-keypad.ch8");
+
     //chippie.memory().ram(0x1FF) = 1; // force input
 
     int halt_program = 0;
     bool step_forward = false;
-    int step_button_width = 90;
 
     while (!WindowShouldClose()){
 
@@ -52,7 +69,6 @@ int main() {
         // load next instruction into memory
         chippie.fetch();
 
-        DrawText(TextFormat("next: %x", chippie.get_first_half()), 500, 410, 30, ORANGE);
 
         GuiSetState(STATE_NORMAL); // always draw toggle
         // get current state of toggle
@@ -68,14 +84,15 @@ int main() {
             // draw disable step button
             GuiSetState(STATE_DISABLED);
             GuiButton((Rectangle){
-                    (float)chippie.display().left_pixel(140),
-                    (float)chippie.display().bottom_pixel(10),
-                    (float)step_button_width, 30 },
+                    (float) step_x,
+                    (float) step_y,
+                    (float) step_width, 30 },
                 "Step Forward");
             // execute instruction
             chippie.decode_execute_opcode();
             //update clocks
             chippie.tick();
+            DrawText("next opcode: 0x----", op_text_x, op_text_y, op_text_size, GRAY);
 
         }else{
             // program halted
@@ -83,10 +100,12 @@ int main() {
             GuiSetState(STATE_NORMAL);
             // get current state of button
             step_forward = GuiButton((Rectangle){
-                    (float)chippie.display().left_pixel(140),
-                    (float)chippie.display().bottom_pixel(10),
-                    (float)step_button_width, 30 },
+                    (float) step_x,
+                    (float) step_y,
+                    (float) step_width, 30 },
                 "Step Forward");
+
+            DrawText(TextFormat("next opcode: 0x%04x", chippie.get_instruction()), op_text_x, op_text_y, op_text_size, ORANGE);
 
             if(step_forward){
                 if(chippie.is_draw_instruction()){
@@ -104,7 +123,7 @@ int main() {
 
         chippie.display().render();
 
-        DrawText(file_qualified_path.c_str(), 208, GetScreenHeight() - 20, 10, GRAY);
+        DrawText(file_qualified_path.c_str(), 450, GetScreenHeight() - 20, 10, RED);
 
         GuiSetState(STATE_NORMAL); // always draw load button
         // raygui: controls drawing
