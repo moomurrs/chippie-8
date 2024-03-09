@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 project(chippie-8 C CXX)
 
+set(spdlog_DIR "/usr/local/include/spdlog")
+find_package(spdlog REQUIRED)
+
 set(CMAKE_CXX_STANDARD 17)
 
 # Setting parameters for raylib
