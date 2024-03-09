@@ -729,6 +729,6 @@ private:
     uint8_t first_half;
     uint8_t second_half;
     Timer timer_60Hz{60.0};
-    Timer cycle_timer{100.0};
+    Timer cycle_timer{500.0};
 
 };

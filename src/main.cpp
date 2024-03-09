@@ -16,9 +16,13 @@ int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Chippie-8");
     spdlog::set_level(spdlog::level::critical);
 
-    Chippie chippie{};
-    chippie.load_rom_to_ram("../test/6-keypad.ch8");
+    // name and fully-qualified path of rom file
+    std::string default_rom = "Brix_Gustafsson_1990.ch8";
+    std::string file_qualified_path = "../roms/" + default_rom; // default rom
+    std::string rom_text = default_rom; // default rom
 
+    Chippie chippie{};
+    chippie.load_rom_to_ram(file_qualified_path.c_str());
 
     int toggle_x = chippie.display().left_pixel(20);
     int toggle_y = chippie.display().bottom_pixel(10);
@@ -44,19 +48,13 @@ int main() {
     GuiWindowFileDialogState fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
 
     bool exitWindow = false;
-
-    // name and fully-qualified path of rom file
-    std::string file_qualified_path{};
-
     //chippie.load_rom_to_ram("../test/1-chip8-logo.ch8");
-
     //chippie.memory().ram(0x1FF) = 1; // force input
 
     int halt_program = 0;
     bool step_forward = false;
 
     std::string status = "RUNNING";
-    std::string rom_text = "";
 
     while (!WindowShouldClose()){
 
@@ -130,10 +128,10 @@ int main() {
         }
         DrawText(TextFormat("Status : %s", status.c_str()), status_text_x, status_text_y, status_text_size, GREEN);
         DrawText(TextFormat("ROM : %s", rom_text.c_str()), rom_text_x, rom_text_y, rom_text_size, SKYBLUE);
+        DrawText("Made by Murun", SCREEN_WIDTH - 175, SCREEN_HEIGHT - 25, 20, MAROON);
+
 
         chippie.display().render();
-
-        //DrawText(file_qualified_path.c_str(), 450, GetScreenHeight() - 20, 10, RED);
 
         GuiSetState(STATE_NORMAL); // always draw load button
         // raygui: controls drawing
