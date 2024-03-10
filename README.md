@@ -1,7 +1,7 @@
 # Purpose
 This project recreates a popular fantasy-console from the 1970s: Chip-8. Using C++17, raylib, and raygui, Chippie can load, run, and pause ROM execution. Give it a try!
 
-<video loop src='./assets/chippie.mp4'> Chippie-8 </video>
+![Chippie](./assets/chippie.gif)
 
 # Prerequisites
 * Install [spdlog as a lib](https://github.com/gabime/spdlog?tab=readme-ov-file#compiled-version-recommended---much-faster-compile-times)
