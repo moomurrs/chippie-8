@@ -106,7 +106,7 @@ public:
 private:
     float magnifier = 1.0f; // scaling
 
-    const int padding = 1; // spacing between pixel blocks
+    const int padding = 0; // spacing between pixel blocks
 
     const int height_offset = 20;
     const int width_offset = 20;
